@@ -1,0 +1,999 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Maze — Light & Friendly Arcade</title>
+<style>
+  :root{
+    --cell:44px;
+    --gap:6px;
+    --sky-blue:#7e97c4;
+    --sky-light:#90a9e8;
+    --cloud-white:#ffffff;
+    --mario-red:#b72828;
+    --pipe-green:#4ad253;
+    --coin-yellow:#f23615;
+    --brown-block:#ac7f4e;
+    --panel-light:#fff6e0;
+    --panel-border:#e2bd85;
+    --text-dark:#000000;
+    --shadow-lg: 0 10px 18px rgba(85, 60, 60, 0.12);
+    --muted:#604121;
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;font-family:"Courier New", monospace, system-ui;}
+  body{
+    background:
+      radial-gradient(900px 600px at 20% 20%, rgba(255,255,255,0.6), transparent 60%),
+      radial-gradient(900px 600px at 80% 80%, rgba(255,255,255,0.45), transparent 60%),
+      linear-gradient(180deg,var(--sky-blue) 0%, #7fc8ff 60%, #74c0ff 100%);
+    color:var(--text-dark);
+    padding:16px;
+    height:100%;
+  }
+
+  .container{
+    max-width:1400px; margin:0 auto;
+    display:grid; grid-template-columns:1.6fr 1fr 1fr; gap:18px; align-items:start;
+    height:calc(100vh - 32px);
+  }
+  @media (max-width:1100px){ .container{grid-template-columns:1fr; grid-auto-rows:auto; height:auto} }
+
+  .panel, .maze-col{
+    background:var(--panel-light);
+    border-radius:14px;
+    border:4px solid var(--panel-border);
+    padding:14px;
+    box-shadow:var(--shadow-lg), inset 0 0 14px rgba(255,240,210,0.45);
+  }
+
+  .maze-col{ display:flex; flex-direction:column; gap:12px; min-height:420px; }
+
+  .title{ color:var(--mario-red); font-weight:900; font-size:20px; margin:0 0 4px 0; }
+
+  .meta-row{display:flex;gap:10px;flex-wrap:wrap}
+  .badge{ background:linear-gradient(180deg,var(--cloud-white), #fff1d9); padding:6px 8px;border-radius:8px;border:2px solid var(--panel-border); font-weight:900;color:var(--text-dark);box-shadow:0 4px 6px rgba(0,0,0,0.06); }
+
+  #grid{ display:grid; gap:8px; border-radius:10px; align-self:center; justify-self:center; }
+
+  .cell{
+    background:var(--cloud-white);
+    border-radius:8px;
+    border:2px solid #d9d9d9;
+    box-shadow: inset 0 -2px 0 rgba(0,0,0,0.06);
+    display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--text-dark);
+    user-select:none;position:relative;
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+
+  .cell.wall{ background:var(--brown-block); border-color:#9c5b1f; box-shadow:inset 0 0 5px rgba(0,0,0,0.28); color:#3b2a1b; }
+  .cell.start{ background:var(--pipe-green); border-color:#267a2d; color:white; box-shadow:0 0 8px rgba(60,176,67,0.4); }
+  .cell.goal{ background:var(--coin-yellow); border-color:#e9130c; color:#c82b1c; box-shadow:0 0 8px rgba(220, 38, 14, 0.45); }
+  .cell-misslead{background:var(--coin-yellow); border-color:#e9130c; color:#c82b1c; box-shadow:0 0 8px rgba(220, 38, 14, 0.45); }
+  .cell-missleadto{background:var(--coin-yellow); border-color:#e9130c; color:#c82b1c; box-shadow:0 0 8px rgba(220, 38, 14, 0.45); }
+
+  .player-highlight{ outline:3px solid rgba(255,255,255,0.5); transform:translateY(-2px); }
+
+  .hud{display:flex;gap:10px;margin-top:6px;flex-wrap:wrap}
+  .small-panel{ background:linear-gradient(180deg,#fff,#fff8f0); padding:8px;border-radius:8px;border:2px solid var(--panel-border);min-width:110px;font-weight:900;text-align:center;color:var(--text-dark) }
+  .log{ background:#fff8e8;padding:10px;border-radius:10px;border:3px solid var(--panel-border);font-weight:800;color:var(--text-dark); }
+
+  .panel .heading{ color:var(--mario-red); font-weight:900; margin-bottom:10px; }
+
+  .commands-list .card{ background:var(--cloud-white); padding:12px; border-radius:10px; margin-bottom:10px; border:3px solid var(--panel-border); font-weight:900; cursor:grab; box-shadow:0 6px 12px rgba(0,0,0,0.08); }
+  .card:active{ cursor:grabbing; transform:translateY(1px) }
+
+  .exec-row{display:flex;gap:8px;flex-wrap:wrap}
+  .btn{ background:linear-gradient(90deg,#ffd447,#ff9c48); border:none; padding:10px 19px; border-radius:10px; font-weight:900; cursor:pointer; color:#4a2a00; box-shadow:0 6px 14px rgba(0,0,0,0.12); }
+  .btn.secondary{ background:transparent; border:2px solid var(--panel-border);min-width:110px;}
+
+  .solution-board{ min-height:180px; border-radius:10px; padding:10px; background:#fff; border:3px dashed rgba(255,214,136,0.45); display:flex;flex-wrap:wrap;gap:8px; align-items:flex-start; }
+  .sol-item{ background:#fff4e6; padding:8px 10px; border-radius:8px; border:3px solid #ffdba6; font-weight:900; cursor:pointer; color:var(--text-dark); box-shadow:0 6px 12px rgba(0,0,0,0.06); }
+  .sol-item.active{ outline:3px dashed rgba(255,255,255,0.6); transform:scale(1.02); }
+
+  #modal{ display:none; position:fixed; inset:0; align-items:center; justify-content:center; background:rgba(0,0,0,0.45); z-index:9999 }
+  #modal .modal-box{ background:var(--panel-light); padding:16px; border-radius:10px; border:3px solid var(--panel-border); width:320px; max-width:92%; box-shadow:var(--shadow-lg);}
+  #modal h3{ margin:0 0 8px 0; color:var(--mario-red) }
+
+  .small{ font-size:13px; color:var(--muted); font-weight:700 }
+
+  .frame{
+    background:var(--sky-light);
+    padding:16px;
+    border-radius:12px;
+    border:3px solid #b3ddff;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    box-shadow:inset 0 0 12px rgba(255,255,255,0.4);
+    width:100%;
+    height: calc(100vh - 360px);
+    max-height: 520px;
+    min-height: 280px;
+    overflow:hidden;
+    position:relative;
+  }
+
+    /* Blinking effect for timer */
+.blink {
+  animation: blinkAnim 0.7s infinite alternate;
+}
+
+@keyframes blinkAnim {
+  0% { color: red; transform: scale(1); }
+  100% { color: #ff6b6b; transform: scale(1.15); }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="maze-col panel">
+    <div class="title">Maze</div>
+    <div class="meta-row">
+      <div class="badge">Level <span id="levelNumber">1</span>/7</div>
+      <div class="badge">Size <span id="levelSize">4×4</span></div>
+      <div class="badge">Time left <span id="timeLeft">--</span></div>
+      <div class="badge">Score <span id="totalScore">0</span></div>
+      <!-- <div class="badge">Best (L) <span id="bestForLevel">—</span></div> -->
+    </div>
+
+    <div class="frame">
+      <div id="grid"></div>
+    </div>
+
+    <div class="hud">
+      <div class="small-panel">Chances<br><span id="chances" style="font-size:18px">3</span></div>
+      <div class="small-panel">Limit<br><span id="levelLimit" style="font-size:18px">--</span></div>
+      <div class="small-panel">Used<br><span id="levelUsed" style="font-size:18px">0s</span></div>
+      <div class="small-panel">Best time<br><span id="bestTime" style="font-size:14px">—</span></div>
+    </div>
+
+    <div class="log" id="log" style="margin-top:10px">Welcome — place commands and press Run.</div>
+  </div>
+
+  <div class="panel">
+    <div class="heading">Commands</div>
+    <div id="commandsWrap" class="commands-list">
+      <div class="card" draggable="true" data-cmd="move">Move Forward</div>
+      <div class="card" draggable="true" data-cmd="left">Turn Left</div>
+      <div class="card" draggable="true" data-cmd="right">Turn Right</div>
+    </div>
+
+    <div style="margin-top:12px; font-size:medium;" class="small" >Drag a command to the Solution column or tap the card to add on to solution board.<br/><br/> The sequence of the command cards should make the character reach the end of the puzzle</div>
+
+    <div style="margin-top:14px" class="panel" aria-hidden="true">
+      <div class="heading">Controls</div>
+      <div class="exec-row">
+        <button id="runBtn" class="btn">Run</button>
+        <button id="clearBtn" class="btn secondary">Clear</button>
+        <button id="resetBtn" class="btn secondary">Restart</button>
+        <button id="nextBtn" class="btn secondary" style="display:none">Next Level</button>
+        <!-- <button onclick="errorSound.play()">TEST SOUND</button> -->
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="heading">Solution (drag here)</div>
+    <div id="solution" class="solution-board" ondragover="event.preventDefault()"></div>
+    <div class="small" style="margin-top:10px; font-size:medium;"></div>
+
+    <div style="margin-top:12px; font-size:xx-large;" class="panel">
+      <div class="heading">Per-level Bests</div>
+      <div id="bestsBox" class="small">No data yet</div>
+    </div>
+  </div>
+</div>
+
+<div id="modal">
+  <div class="modal-box">
+    <h3 id="modalTitle">Title</h3>
+    <div id="modalMsg" style="margin-top:8px"></div>
+    <div style="text-align:right;margin-top:12px">
+      <button id="modalOk" class="btn">OK</button>
+    </div>
+  </div>
+</div>
+
+<audio id="beepSound" src="audio/beep.wav"></audio>
+<audio id="errorSound" src="audio/error.mp3"></audio>
+<audio id="levelUpSound" src="audio/levelup.mp3"></audio>
+<audio id="failSound" src="audio/fail.mp3"></audio>
+
+
+<script>
+/* ---------- Levels (kept original square levels converted to rows/cols) + 12×9 appended ---------- */
+const LEVELS = [
+  { size:{rows:4, cols:4}, timeLimit:20, grid:[
+      [2,0,0,1],
+      [1,0,0,0],
+      [0,0,1,0],
+      [0,0,0,3]
+  ]},
+  { size:{rows:5, cols:5}, timeLimit:25, grid:[
+      [2,1,1,0,1],
+      [0,1,0,0,0],
+      [0,0,0,1,0],
+      [0,0,1,0,0],
+      [0,1,1,1,3]
+  ]},
+
+
+  { size:{rows:6, cols:6}, timeLimit:35, grid:[
+      [3,0,1,1,1,4],
+      [0,0,1,0,0,0],
+      [1,0,1,0,0,0],
+      [1,0,0,0,1,0],
+      [1,1,1,0,1,0],
+      [1,1,0,0,0,2]
+  ]},
+
+  { size:{rows:7, cols:7}, timeLimit:50, grid:[
+      [2,0,1,1,3,0,0],
+      [1,0,1,0,1,1,0],
+      [0,0,0,0,0,0,0],
+      [1,1,1,0,1,0,0],
+      [0,0,0,0,1,0,1],
+      [0,1,1,0,0,0,0],
+      [4,0,0,1,1,1,4]
+  ]},
+
+  { size:{rows:8, cols:10}, timeLimit:60, grid:[
+  [2,0,1,1,0,0,1,0,0,4],
+  [0,0,1,0,0,0,1,0,1,0],
+  [1,0,0,0,1,0,1,0,0,0],
+  [1,1,1,0,1,0,0,1,1,0],
+  [1,0,0,0,0,0,0,0,1,0],
+  [1,0,1,1,1,1,1,0,1,0],
+  [1,4,0,0,0,0,0,0,0,0],
+  [1,1,1,1,0,1,3,1,0,4]
+  ]},
+  {size:{rows:9, cols:9}, timeLimit:80, grid:[
+  [4,0,1,0,0,0,0,0,0],
+  [1,0,1,0,1,1,1,1,0],
+  [1,0,0,0,1,0,0,1,3],
+  [1,1,1,0,1,1,0,0,1],
+  [4,0,0,0,0,0,1,0,0],
+  [1,0,1,1,1,0,1,0,1],
+  [1,0,0,0,1,0,0,0,0],
+  [1,1,1,0,0,0,1,1,0],
+  [4,0,0,0,1,0,0,0,2]
+  ]
+  },
+  /* custom 12x9 level appended (rows:9, cols:12) */
+  { size:{rows:9, cols:12}, timeLimit:100, grid:[
+    [2,0,1,0,0,0,1,3,0,0,0,4],
+    [0,0,1,0,1,0,1,0,1,0,1,0],
+    [1,0,0,0,1,0,0,0,0,0,0,1],
+    [1,1,1,0,1,1,1,0,1,1,0,1],
+    [4,0,0,0,0,0,1,0,0,0,0,4],
+    [1,1,1,1,1,0,1,0,1,1,1,0],
+    [0,0,0,0,1,0,0,0,0,0,0,0],
+    [0,1,1,0,0,1,1,1,0,1,1,0],
+    [4,1,1,0,0,0,0,0,0,0,0,4]
+  ]}
+];
+
+
+/* ---------- State ---------- */
+let curLevelIndex = 0;
+let totalScore = 0;
+let totalTimeTaken = 0;
+let state = {
+  grid: [],
+  size: { rows: 3, cols: 3 },
+  player: {x:0,y:0, dir:0}, // 0=right,1=down,2=left,3=up
+  start:{x:0,y:0},
+  goal:{x:0,y:0},
+  timeLeft:0,
+  timerId: null,
+  chances: 3,
+  levelTimeUsed: 0,
+  isAnimating: false
+};
+
+/* ---------- Refs ---------- */
+const gridEl = document.getElementById('grid');
+const levelNumberEl = document.getElementById('levelNumber');
+const levelSizeEl = document.getElementById('levelSize');
+const timeLeftEl = document.getElementById('timeLeft');
+const totalScoreEl = document.getElementById('totalScore');
+const levelLimitEl = document.getElementById('levelLimit');
+const levelUsedEl = document.getElementById('levelUsed');
+const chancesEl = document.getElementById('chances');
+const logEl = document.getElementById('log');
+const solutionEl = document.getElementById('solution');
+const runBtn = document.getElementById('runBtn');
+const clearBtn = document.getElementById('clearBtn');
+const resetBtn = document.getElementById('resetBtn');
+const nextBtn = document.getElementById('nextBtn');
+const bestsBox = document.getElementById('bestsBox');
+//const bestForLevelEl = document.getElementById('bestForLevel');
+const bestTimeEl = document.getElementById('bestTime');
+const modal = document.getElementById('modal');
+const modalTitle = document.getElementById('modalTitle');
+const modalMsg = document.getElementById('modalMsg');
+const modalOk = document.getElementById('modalOk');
+
+const timerBeep = document.getElementById("beepSound");
+timerBeep.volume = 1.0;
+
+
+
+/* ---------- Error Sound ---------- */
+const errorSound = document.getElementById("errorSound");
+errorSound.volume = 1.0;
+function playErrorSound() {
+    errorSound.currentTime = 0; // rewind so it can play repeatedly
+    errorSound.play().catch(()=>{});
+}
+
+/* ---------- Level Up Sound ---------- */
+const levelUpSound = document.getElementById("levelUpSound");
+levelUpSound.volume = 1.0;
+function playLevelUpSound() {
+    levelUpSound.currentTime = 0;
+    levelUpSound.play().catch(()=>{});
+}
+/* ---------- Fail / Fake Goal Sound ---------- */
+const failSound = document.getElementById("failSound");
+failSound.volume = 1.0;
+function playFailSound() {
+    failSound.currentTime = 0;
+    failSound.play().catch(()=>{});
+}
+
+
+
+
+
+
+/* ---------- Helpers ---------- */
+function cloneGrid(g){ return g.map(r => r.slice()); }
+function findMarker(grid, val){ for(let y=0;y<grid.length;y++) for(let x=0;x<grid[y].length;x++) if(grid[y][x] === val) return {x,y}; return null; }
+function sleep(ms){ return new Promise(res => setTimeout(res, ms)); }
+function formatTime(sec){ const mm=Math.floor(sec/60); const ss=sec%60; return mm>0?`${mm}m ${ss}s`:`${ss}s`}
+/* ---------- Convert Fake Goal to Real Goal (works for any rows/cols) ---------- */
+
+
+// function convertFakeToRealGoal() {
+//   let newGoal = null;
+
+//   for (let r = 0; r < state.grid.length; r++) {
+//     for (let c = 0; c < state.grid[r].length; c++) {
+
+//       // Remove OLD real goal (3)
+//       if (state.grid[r][c] === 3) {
+//         state.grid[r][c] = 0;
+//       }
+
+//       // Fake goals: 4 or 5 → become new destination
+//       if (state.grid[r][c] === 4 || state.grid[r][c] === 5) {
+//         state.grid[r][c] = 3;
+//         newGoal = { x: c, y: r };
+//       }
+//     }
+//   }
+
+//   if (newGoal) state.goal = newGoal;
+
+//   // Reset player back to start
+//   state.player.x = state.start.x;
+//   state.player.y = state.start.y;
+//   state.player.dir = 0;
+//   solutionEl.innerHTML = '';  //clears solution board when wrong destination is met 
+
+//   writeLog("Fake goal reached — destination changed!");
+//   renderLevel(true);
+// }
+
+
+/* ---------- Local bests ---------- */
+const BEST_KEY = 'maze_level_bests_v1';
+function loadBests(){ try{ return JSON.parse(localStorage.getItem(BEST_KEY) || '{}'); }catch(e){return {}} }
+function saveBests(b){ localStorage.setItem(BEST_KEY, JSON.stringify(b)); updateBestsUI(); }
+function updateBestsUI(){
+  const b = loadBests();
+  if(Object.keys(b).length === 0){ bestsBox.innerHTML = '<div class="small">No bests yet</div>'; //if(bestForLevelEl) bestForLevelEl.innerText='—'; 
+  if(bestTimeEl) bestTimeEl.innerText='—'; return; }
+  let lines='';
+  for(let i=0;i<LEVELS.length;i++){ const key='L'+(i+1); if(b[key]) lines += `<div>Level ${i+1}: score ${b[key].score} — time ${formatTime(b[key].time)}</div>`; }
+  bestsBox.innerHTML = lines || '<div class="small">No bests yet</div>';
+  const curKey = 'L'+(curLevelIndex+1); if(b[curKey]){ //if(bestForLevelEl) bestForLevelEl.innerText=b[curKey].score; 
+    if(bestTimeEl) bestTimeEl.innerText=formatTime(b[curKey].time);} else { //if(bestForLevelEl) bestForLevelEl.innerText='—'; 
+    if(bestTimeEl) bestTimeEl.innerText='—';}
+}
+
+/* ---------- Render (rectangular support) ---------- */
+function renderLevel(highlightPlayer=true){
+  const rows = state.size.rows;
+  const cols = state.size.cols;
+  const gap = 8;
+
+  const frame = document.querySelector(".frame");
+  const availableWidth  = Math.max(120, frame.clientWidth  - 40);
+  const availableHeight = Math.max(120, frame.clientHeight - 40);
+
+  // compute cell size that fits both directions
+  const cellSize = Math.floor(Math.min((availableWidth - (cols-1)*gap) / cols, (availableHeight - (rows-1)*gap) / rows));
+
+  // Set grid pixel size (exact)
+  gridEl.style.width  = (cellSize * cols + (cols-1)*gap) + "px";
+  gridEl.style.height = (cellSize * rows + (rows-1)*gap) + "px";
+
+  gridEl.style.gridTemplateColumns = `repeat(${cols}, ${cellSize}px)`;
+  gridEl.style.gridTemplateRows    = `repeat(${rows}, ${cellSize}px)`;
+  gridEl.innerHTML = '';
+
+  for(let y=0;y<rows;y++){
+    for(let x=0;x<cols;x++){
+      const div = document.createElement('div');
+      div.className = 'cell';
+      div.style.height = cellSize + 'px';
+      div.style.width = cellSize + 'px';
+      const v = state.grid[y] && state.grid[y][x] !== undefined ? state.grid[y][x] : 1; // default wall if out-of-range
+      if(v === 1) div.classList.add('wall');
+
+      if (v === 2) div.classList.add('start');
+
+      // Player overlay
+      if (x === state.player.x && y === state.player.y && highlightPlayer) {
+        div.classList.add('player-highlight');
+
+        const charEl = document.createElement('div');
+        charEl.style.width = "80%";
+        charEl.style.height = "80%";
+        charEl.style.display = "flex";
+        charEl.style.alignItems = "center";
+        charEl.style.justifyContent = "center";
+        charEl.style.pointerEvents = "none";
+        charEl.style.userSelect = "none";
+        charEl.style.filter = "drop-shadow(0 0 3px rgba(0,0,0,0.4))";
+
+        // rotate so that dir mapping matches visual expectation:
+        // 0 = right  => rotate 0deg on arrow shaped pointing right in SVG
+        // Our SVG arrow points UP in earlier attempts; to be consistent, we'll use an arrow that points UP by default and rotate accordingly.
+        // But easier: use triangle that points UP originally, then rotate: right=90, down=180, left=270, up=0
+        const rotation =
+          (state.player.dir === 0) ? "rotate(90deg)" :   // right
+          (state.player.dir === 1) ? "rotate(180deg)" :  // down
+          (state.player.dir === 2) ? "rotate(270deg)" :  // left
+                                    "rotate(0deg)";     // up
+        charEl.style.transform = rotation;
+
+        // Arrow SVG (triangle) — default points UP (so rotation mapping above works)
+        // charEl.innerHTML =
+        //   '<svg viewBox="0 0 24 24" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">' +
+        //   '  <path d="M12 3 L20 19 L12 15 L4 19 Z" fill="#3f3f3f"/>' +
+        //   '</svg>';
+
+          charEl.innerHTML =
+              '<svg viewBox="0 0 24 24" width="100%" height="100%">' +
+              '  <path d="M12 2 L19 21 L12 17 L5 21 Z" fill="#3f3f3f"/>' +
+              '</svg>';
+
+        div.appendChild(charEl);
+      }
+      // else if (v === 3) {
+      //   div.classList.add('goal');
+      // }
+      else if (v === 3) {                          //trophy
+        const trophy = document.createElement("div");
+        trophy.style.width = "90%";
+        trophy.style.height = "90%";
+        trophy.style.display = "flex";
+        trophy.style.alignItems = "center";
+        trophy.style.justifyContent = "center";
+        trophy.style.pointerEvents = "none";
+
+        trophy.innerHTML = `
+            <svg viewBox="0 0 32 32" width="100%" height="100%">
+                <path fill="#FFD700" stroke="#B8860B" stroke-width="2"
+                    d="M22 4H10v4H6v4c0 4 3 7 7 7h6c4 0 7-3 7-7V8h-4V4z"/>
+                <rect x="12" y="19" width="8" height="4" fill="#DAA520"/>
+                <rect x="10" y="23" width="12" height="5" fill="#B8860B"/>
+            </svg>
+        `;
+
+        div.appendChild(trophy);
+    }
+
+      gridEl.appendChild(div);
+
+      
+      if (v === 4 || v === 5) {
+        const trophy = document.createElement("div");
+        trophy.style.width = "90%";
+        trophy.style.height = "90%";
+        trophy.style.display = "flex";
+        trophy.style.alignItems = "center";
+        trophy.style.justifyContent = "center";
+        trophy.style.pointerEvents = "none";
+
+        trophy.innerHTML = `
+            <svg viewBox="0 0 32 32" width="100%" height="100%">
+                <path fill="#FFD700" stroke="#B8860B" stroke-width="2"
+                    d="M22 4H10v4H6v4c0 4 3 7 7 7h6c4 0 7-3 7-7V8h-4V4z"/>
+                <rect x="12" y="19" width="8" height="4" fill="#DAA520"/>
+                <rect x="10" y="23" width="12" height="5" fill="#B8860B"/>
+            </svg>
+        `;
+
+        div.appendChild(trophy);
+      }
+
+      // if (v === 4) {
+      //     div.classList.add('goal');
+      // }
+      // gridEl.appendChild(div);
+      // if (v === 5) {
+      //     div.classList.add('goal');
+      // }
+      gridEl.appendChild(div);
+    }
+  }
+
+  levelNumberEl.textContent = curLevelIndex+1;
+  levelSizeEl.textContent = `${state.size.rows}×${state.size.cols}`;
+  timeLeftEl.textContent = `${state.timeLeft}s`;
+
+  // BLINK when below 10 seconds
+  if (state.timeLeft <= 10) {
+      timeLeftEl.classList.add("blink");
+  } else {
+      timeLeftEl.classList.remove("blink");
+  }
+  totalScoreEl.textContent = totalScore;
+  levelLimitEl.textContent = `${LEVELS[curLevelIndex].timeLimit}s`;
+  chancesEl.textContent = state.chances;
+  levelUsedEl.textContent = `${state.levelTimeUsed}s`;
+  updateBestsUI();
+}
+
+/* ---------- Timer ---------- */
+function startTimer(){
+  stopTimer();
+  state.timeLeft = LEVELS[curLevelIndex].timeLimit;
+  state.levelTimeUsed = 0;
+  renderLevel();
+  state.timerId = setInterval(()=>{
+    state.timeLeft--;
+    state.levelTimeUsed++;
+    renderLevel();
+    // When time is almost over → play beep
+    if (state.timeLeft <= 10 && state.timeLeft > 0) {
+      timerBeep.play().catch(()=>{});
+    } 
+
+    // Time is up
+    if (state.timeLeft <= 0){
+        stopTimer();
+        onLevelFailedTime();
+    }
+  },1000);
+}
+function stopTimer(){ if(state.timerId){ clearInterval(state.timerId); state.timerId=null; } }
+
+/* ---------- Load level (rectangular-aware) ---------- */
+function loadLevel(index){
+  if(index<0||index>=LEVELS.length) return;
+  curLevelIndex = index;
+  const lvl = LEVELS[curLevelIndex];
+
+  // expect lvl.size to be {rows, cols}
+  state.size = { rows: lvl.size.rows, cols: lvl.size.cols };
+  // clone grid (some levels may use exact rows/cols)
+  state.grid = cloneGrid(lvl.grid);
+  const s = findMarker(state.grid,2);
+  const g = findMarker(state.grid,3);
+  state.start = s || {x:0,y:0};
+  state.goal = g || {x: state.size.cols-1, y: state.size.rows-1};
+
+  state.player.x = state.start.x; 
+  state.player.y = state.start.y; 
+  state.player.dir = 0;
+
+  //state.chances = 3;
+  solutionEl.innerHTML = '';
+  nextBtn.style.display = 'none';
+  writeLog(`Level ${curLevelIndex+1} loaded. Place commands and Run (Animate).`);
+  startTimer();
+  renderLevel();
+}
+
+/* ---------- Animation & execution (use cols/rows for bounds) ---------- */
+function getDelay(){ return 420; }
+
+function flashWall(x,y){
+  if(x<0||y<0||x>=state.size.cols||y>=state.size.rows) return;
+  const idx = y * state.size.cols + x;
+  const cell = gridEl.children[idx];
+  if(!cell) return;
+  const prev = cell.style.boxShadow;
+  cell.style.boxShadow = '0 0 0 8px rgba(255,80,80,0.12) inset';
+  setTimeout(()=> cell.style.boxShadow = prev, 350);
+}
+
+function setControlsEnabled(enabled){
+  runBtn.disabled=!enabled; clearBtn.disabled=!enabled; resetBtn.disabled=!enabled; nextBtn.disabled=!enabled;
+  [runBtn,clearBtn,resetBtn,nextBtn].forEach(b=> b.style.opacity = enabled ? '1' : '0.6');
+}
+
+function highlightSolutionAt(index){
+  const items = Array.from(solutionEl.children);
+  items.forEach((it,i)=> it.classList.toggle('active', i===index));
+}
+//animate
+async function runAnimated(){
+  if(state.isAnimating) return;
+  const seqEls = Array.from(solutionEl.children);
+  if(seqEls.length === 0){ writeLog('Please add commands before running.'); return; }
+
+  state.isAnimating = true;
+  setControlsEnabled(false);
+
+  const seq = seqEls.map(el => el.dataset.cmd);
+  let px = state.player.x, py = state.player.y, pd = state.player.dir;
+  let chances = state.chances;
+  let stepsUsed = 0;
+  writeLog('Running sequence...');
+
+  for(let i=0;i<seq.length;i++){
+    const cmd = seq[i];
+    highlightSolutionAt(i);
+    const delay = getDelay();
+    await sleep(delay);
+
+    if(cmd==='move'){
+      let nx=px, ny=py;
+      if(pd===0) nx++;
+      if(pd===1) ny++;
+      if(pd===2) nx--;
+      if(pd===3) ny--;
+      
+      if (nx < 0 || ny < 0 || nx >= state.size.cols || ny >= state.size.rows) {
+      // OUT OF BOUNDS → counts as a failed move (same as wall)
+
+      flashWall(nx, ny);
+      playErrorSound();//audio
+      chances--;                  //reduce chance if out of bounds
+      state.chances = chances;
+
+      solutionEl.innerHTML = '';  // Clear commands
+
+      state.isAnimating = false;
+      setControlsEnabled(true);
+
+      showModal(
+          "Out of Bounds!",
+          `You moved outside the grid.<br>Chance lost! (${chances} left)`,
+          () => {
+              // Reset player to start after OK
+              px = state.start.x;
+              py = state.start.y;
+              pd = 0;
+
+              state.player.x = px;
+              state.player.y = py;
+              state.player.dir = pd;
+
+              solutionEl.innerHTML = '';
+
+              renderLevel(true);
+
+              // If no chances left → fail
+              if (state.chances == 0) {
+                  showModal("Game Over", "You lost all chances!", () => onLevelFailed());
+              }
+          }
+      );
+
+      return;  // <-- IMPORTANT! Stop the remaining commands
+  }
+      // Check if it's a wall (cell value === 1)
+      else if(state.grid[ny][nx] === 1){
+
+        flashWall(nx,ny);
+        playErrorSound();//audio
+        chances--;
+        state.chances = chances;
+
+        solutionEl.innerHTML = '';  // Clear solution
+        
+        state.isAnimating = false;
+        setControlsEnabled(true);
+
+        // POPUP message
+        showModal(
+            "Wall Hit!",
+            `You hit a wall at.<br>Chance lost! (${chances} left)`,
+            () => {
+                // Reset to starting point AFTER OK
+                px = state.start.x;
+                py = state.start.y;
+                pd = 0;
+
+                state.player.x = px;
+                state.player.y = py;
+                state.player.dir = pd;
+
+                // Clear solution
+                solutionEl.innerHTML = '';
+
+                renderLevel(true);
+
+                // If chances finished → fail
+                if (state.chances == 0) {
+                    showModal("Game Over", "You lost all chances!", () => onLevelFailed());
+                    return;
+                }
+            }
+        );
+        return;
+
+      } else {
+        px = nx; 
+        py = ny;
+        stepsUsed++;
+        state.player.x = px; 
+        state.player.y = py; 
+        state.player.dir = pd;
+        renderLevel(true);
+      }
+    } else if(cmd==='left'){
+      pd = (pd+3)%4;
+      state.player.dir = pd; renderLevel(true);
+    } else if(cmd==='right'){
+      pd = (pd+1)%4;
+      state.player.dir = pd; renderLevel(true);
+    }
+
+    // if (state.grid[py] && (state.grid[py][px] === 5)){
+    //   //fifth();
+    //   writeLog('Got You destination is present in one of the 2 red Boxes');
+    //   await sleep(1500);
+    // }
+
+    // Fake goal — just warn, DO NOT change destination
+
+    if (state.grid[py] && (state.grid[py][px] === 4 || state.grid[py][px] === 5)) {
+     playFailSound();  // 🔊 Play fake goal fail sound
+    // Reduce a chance
+    state.chances--;
+    chancesEl.textContent = state.chances;
+
+    // Reset player to starting position
+    state.player.x = state.start.x;
+    state.player.y = state.start.y;
+    state.player.dir = 0;
+
+    renderLevel(true);
+
+    // Show popup modal
+    showModal(
+        "Fake Goal",
+        "This is a <b>FAKE GOAL</b> — try another path!",
+        () => {
+            solutionEl.innerHTML = '';  // Clear solution
+            writeLog("Try a different route.");
+        }
+    );
+
+    // If chances are over -> fail screen
+    if (state.chances <= 0){
+        showModal('Time Up', 'You lost all chances.', () => onLevelFailed());
+        return;
+    }
+
+    // Stop animation
+    state.isAnimating = false;
+    setControlsEnabled(true);
+    return;
+}
+
+
+
+
+    // if (state.grid[py] && (state.grid[py][px] === 4 || state.grid[py][px] === 5)) {
+    //     writeLog("This is a FAKE GOAL — try another path!");
+    //     solutionEl.innerHTML = '';  //clears solution board when wrong destination is met 
+    //     await sleep(800);
+    //     // Do NOT stop gameplay, do NOT reset player
+    // }
+    
+
+    // Fake goal reached → switch destination
+    // if (state.grid[py] && (state.grid[py][px] === 4)) {
+    //     await sleep(200);
+    //     convertFakeToRealGoal();
+    //     state.isAnimating = false;
+    //     setControlsEnabled(true);
+    //     return;
+    // }
+
+    if(state.grid[py] && state.grid[py][px] === 3){
+      state.player.x = px; state.player.y = py; state.player.dir = pd;
+      state.chances = chances;
+      highlightSolutionAt(-1);
+      state.isAnimating=false;
+      setControlsEnabled(true);
+      onLevelComplete(stepsUsed);
+      return;
+    }
+  }
+
+  highlightSolutionAt(-1);
+  state.player.x = px; state.player.y = py; state.player.dir = pd;
+  state.chances = chances;
+  renderLevel(true);
+
+  if(state.chances <= 0){
+    stopTimer(); state.isAnimating=false; setControlsEnabled(true);
+    showModal('Failed','You lost all chances and failed this level.', ()=> onLevelFailed());
+    return;
+  }
+
+  if(!(state.grid[state.player.y] && state.grid[state.player.y][state.player.x] === 3)){
+    await sleep(200);
+    state.player.x = state.start.x; state.player.y = state.start.y; state.player.dir = 0;
+    renderLevel(true);
+    solutionEl.innerHTML = '';
+    writeLog('Sequence executed but goal not reached. Modify commands and try again.');
+  }
+
+  state.isAnimating=false;
+  setControlsEnabled(true);
+}
+//function fivth(){
+  
+//}
+
+/* ---------- Scoring ---------- */
+function onLevelComplete(stepsUsed){
+  stopTimer();
+  playLevelUpSound();   // 🔊 Play level-up sound!
+
+  const levelNumber = curLevelIndex+1;
+  const levelBase = levelNumber * 200;
+  const timeBonus = Math.max(0, state.timeLeft) * 15;
+  const stepPenalty = stepsUsed * 8;
+  const levelScore = Math.max(0, Math.round(levelBase + timeBonus - stepPenalty));
+  totalScore += levelScore;
+
+  state.chances = 3;   // RESET only after success
+  chancesEl.textContent = state.chances;
+
+  totalTimeTaken += (LEVELS[curLevelIndex].timeLimit - state.timeLeft);
+  writeLog(`Level ${levelNumber} complete! +${levelScore} (base ${levelBase} + time ${timeBonus} - steps ${stepPenalty}). Steps: ${stepsUsed}`);
+  totalScoreEl.textContent = totalScore;
+
+  const b = loadBests();
+  const key = 'L'+levelNumber;
+  const timeUsed = LEVELS[curLevelIndex].timeLimit - state.timeLeft;
+  if(!b[key] || levelScore > b[key].score || (levelScore===b[key].score && timeUsed < b[key].time)){
+    b[key] = {score: levelScore, time: timeUsed};
+    saveBests(b);
+  }
+
+  if(curLevelIndex < LEVELS.length-1){
+    showModal('Level Complete', `You finished Level ${levelNumber}. Score +${levelScore}. Click OK for next level.`, ()=> loadLevel(curLevelIndex+1));
+  } else {
+    playLevelUpSound();   // 🔊 Play level-up sound!
+    showModal(
+  'All Levels Complete',
+  `Final Score: ${totalScore}<br>Total time taken: ${formatTime(totalTimeTaken)}.`,
+  () => window.location.href = "congrats_M.html"
+);
+  }
+}
+
+/* ---------- Fail handlers ---------- */
+function onLevelFailedTime(){ 
+  stopTimer();  // ⬅ IMPORTANT
+
+  // Reduce a chance
+  state.chances--; 
+
+  // Update UI
+  chancesEl.textContent = state.chances;
+  renderLevel();
+
+  // No chances left → full fail
+  if (state.chances <= 0){
+    showModal('Time Up', 'You lost all chances.', () => onLevelFailed());
+    return;
+  }
+
+  // Chances remaining → restart same level
+  showModal(
+    'Time Up',
+    `You lost a chance (${state.chances} left).`,
+    () => loadLevel(curLevelIndex)
+  );
+}
+
+function onLevelFailed(){
+  playFailSound();  // 🔊 Play fake goal fail sound
+  stopTimer();
+  totalTimeTaken += LEVELS[curLevelIndex].timeLimit;
+
+  showModal(
+    'Game Over',
+    `You failed the game.<br>Click OK to continue.`,
+    () => window.location.href = "failed_M.html"
+  );
+}
+
+/* ---------- UI helpers ---------- */
+let logLocked = false;
+
+function writeLog(txt, lockDuration = 1500) {
+    // If log is locked, ignore any new logs
+    if (logLocked) return;
+
+    logLocked = true;
+    logEl.innerHTML = txt;
+
+    // Unlock after duration
+    setTimeout(() => {
+        logLocked = false;
+    }, lockDuration);
+}
+
+
+function showModal(title, html, cb){ modalTitle.textContent = title; modalMsg.innerHTML = html; modal.style.display='flex'; modalOk.onclick = ()=> { modal.style.display='none'; cb && cb(); }; }
+
+/* ---------- Solution / DnD ---------- */
+function createSolItem(cmd){
+  const el = document.createElement('div');
+  el.className = 'sol-item';
+  el.dataset.cmd = cmd;
+  el.textContent = (cmd==='move'?'Move': cmd==='left'?'Left':'Right');
+
+  // disable click removal
+  el.addEventListener('click', (e)=> {
+      e.stopPropagation(); // tap does nothing
+  });
+
+  return el;
+}
+function wireCommandCards(){
+  const cards = document.querySelectorAll('.card');
+  cards.forEach(card=>{
+    card.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', card.dataset.cmd));
+    card.addEventListener('click', ()=> solutionEl.appendChild(createSolItem(card.dataset.cmd)));
+  });
+  solutionEl.addEventListener('drop', e => { e.preventDefault(); const cmd = e.dataTransfer.getData('text/plain'); if(cmd) solutionEl.appendChild(createSolItem(cmd)); });
+}
+
+/* ---------- Buttons ---------- */
+runBtn.addEventListener('click', ()=> runAnimated());
+clearBtn.addEventListener('click', ()=> { if(state.isAnimating) return; solutionEl.innerHTML=''; writeLog('Solution cleared.'); });
+resetBtn.addEventListener('click', ()=> { 
+    if(state.isAnimating) return;
+
+    showModal(
+        'Restart Game?',
+        'Are you sure you want to restart the entire game from Level 1?',
+        () => resetGame()
+    );
+});
+nextBtn.addEventListener('click', ()=> { if(state.isAnimating) return; loadLevel(curLevelIndex+1); });
+
+/* ---------- Flow ---------- */
+function resetGame(){ 
+  totalScore = 0; 
+  totalTimeTaken = 0; 
+  state.chances = 3;
+  loadLevel(0);   // ← goes to Level 1 (index 0)
+}
+
+/* ---------- Init ---------- */
+wireCommandCards();
+loadLevel(0);
+</script>
+</body>
+</html>

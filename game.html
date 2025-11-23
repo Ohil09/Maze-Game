@@ -1,0 +1,943 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Maze — Light & Friendly Arcade</title>
+
+<Style>
+  /* Paste full CSS here (too long for tool message limit) */
+  :root{
+    --cell:44px;
+    --gap:6px;
+    --sky-blue:#7e97c4;
+    --sky-light:#90a9e8;
+    --cloud-white:#ffffff;
+    --mario-red:#b72828;
+    --pipe-green:#4ad253;
+    --coin-yellow:#f23615;
+    --brown-block:#ac7f4e;
+    --panel-light:#fff6e0;
+    --panel-border:#e2bd85;
+    --text-dark:#000000;
+    --shadow-lg: 0 10px 18px rgba(85, 60, 60, 0.12);
+    --muted:#604121;
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;font-family:"Courier New", monospace, system-ui;}
+  body{
+    background:
+      radial-gradient(900px 600px at 20% 20%, rgba(255,255,255,0.6), transparent 60%),
+      radial-gradient(900px 600px at 80% 80%, rgba(255,255,255,0.45), transparent 60%),
+      linear-gradient(180deg,var(--sky-blue) 0%, #7fc8ff 60%, #74c0ff 100%);
+    color:var(--text-dark);
+    padding:16px;
+    height:100%;
+  }
+
+  .container{
+    max-width:1400px; margin:0 auto;
+    display:grid; grid-template-columns:1.6fr 1fr 1fr; gap:18px; align-items:start;
+    height:calc(100vh - 32px);
+  }
+  @media (max-width:1100px){ .container{grid-template-columns:1fr; grid-auto-rows:auto; height:auto} }
+
+  .panel, .maze-col{
+    background:var(--panel-light);
+    border-radius:14px;
+    border:4px solid var(--panel-border);
+    padding:14px;
+    box-shadow:var(--shadow-lg), inset 0 0 14px rgba(255,240,210,0.45);
+  }
+
+  .maze-col{ display:flex; flex-direction:column; gap:12px; min-height:420px; }
+
+  .title{ color:var(--mario-red); font-weight:900; font-size:20px; margin:0 0 4px 0; }
+
+  .meta-row{display:flex;gap:10px;flex-wrap:wrap}
+  .badge{ background:linear-gradient(180deg,var(--cloud-white), #fff1d9); padding:6px 8px;border-radius:8px;border:2px solid var(--panel-border); font-weight:900;color:var(--text-dark);box-shadow:0 4px 6px rgba(0,0,0,0.06); }
+
+  #grid{ display:grid; gap:8px; border-radius:10px; align-self:center; justify-self:center; }
+
+  .cell{
+    background:var(--cloud-white);
+    border-radius:8px;
+    border:2px solid #d9d9d9;
+    box-shadow: inset 0 -2px 0 rgba(0,0,0,0.06);
+    display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--text-dark);
+    user-select:none;position:relative;
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+
+  .cell.wall{ background:var(--brown-block); border-color:#9c5b1f; box-shadow:inset 0 0 5px rgba(0,0,0,0.28); color:#3b2a1b; }
+  .cell.start{ background:var(--pipe-green); border-color:#267a2d; color:white; box-shadow:0 0 8px rgba(60,176,67,0.4); }
+  .cell.goal{ background:var(--coin-yellow); border-color:#e9130c; color:#c82b1c; box-shadow:0 0 8px rgba(220, 38, 14, 0.45); }
+
+  .player-highlight{ outline:3px solid rgba(255,255,255,0.5); transform:translateY(-2px); }
+
+  .hud{display:flex;gap:10px;margin-top:6px;flex-wrap:wrap}
+  .small-panel{ background:linear-gradient(180deg,#fff,#fff8f0); padding:8px;border-radius:8px;border:2px solid var(--panel-border);min-width:110px;font-weight:900;text-align:center;color:var(--text-dark) }
+  .log{ background:#fff8e8;padding:10px;border-radius:10px;border:3px solid var(--panel-border);font-weight:800;color:var(--text-dark); }
+
+  .panel .heading{ color:var(--mario-red); font-weight:900; margin-bottom:10px; }
+
+  .commands-list .card{ background:var(--cloud-white); padding:12px; border-radius:10px; margin-bottom:10px; border:3px solid var(--panel-border); font-weight:900; cursor:grab; box-shadow:0 6px 12px rgba(0,0,0,0.08); }
+  .card:active{ cursor:grabbing; transform:translateY(1px) }
+
+  .exec-row{display:flex;gap:8px;flex-wrap:wrap}
+  .btn{ background:linear-gradient(90deg,#ffd447,#ff9c48); border:none; padding:10px 14px; border-radius:10px; font-weight:900; cursor:pointer; color:#4a2a00; box-shadow:0 6px 14px rgba(0,0,0,0.12); }
+  .btn.secondary{ background:transparent; border:2px solid var(--panel-border); }
+
+  .solution-board{ min-height:180px; border-radius:10px; padding:10px; background:#fff; border:3px dashed rgba(255,214,136,0.45); display:flex;flex-wrap:wrap;gap:8px; align-items:flex-start; }
+  .sol-item{ background:#fff4e6; padding:8px 10px; border-radius:8px; border:3px solid #ffdba6; font-weight:900; cursor:pointer; color:var(--text-dark); box-shadow:0 6px 12px rgba(0,0,0,0.06); }
+  .sol-item.active{ outline:3px dashed rgba(255,255,255,0.6); transform:scale(1.02); }
+
+  #modal{ display:none; position:fixed; inset:0; align-items:center; justify-content:center; background:rgba(0,0,0,0.45); z-index:9999 }
+  #modal .modal-box{ background:var(--panel-light); padding:16px; border-radius:10px; border:3px solid var(--panel-border); width:320px; max-width:92%; box-shadow:var(--shadow-lg);}
+  #modal h3{ margin:0 0 8px 0; color:var(--mario-red) }
+
+  .small{ font-size:13px; color:var(--muted); font-weight:700 }
+
+  .frame{
+    background:var(--sky-light);
+    padding:16px;
+    border-radius:12px;
+    border:3px solid #b3ddff;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    box-shadow:inset 0 0 12px rgba(255,255,255,0.4);
+    width:100%;
+    height: calc(100vh - 360px);
+    max-height: 520px;
+    min-height: 280px;
+    overflow:hidden;
+    position:relative;
+  }
+
+  /* Blinking effect for timer */
+.blink {
+  animation: blinkAnim 0.7s infinite alternate;
+}
+
+@keyframes blinkAnim {
+  0% { color: red; transform: scale(1); }
+  100% { color: #ff6b6b; transform: scale(1.15); }
+}
+
+
+</Style>
+</head>
+
+<body>
+
+<div class="container">
+  <div class="maze-col panel">
+    <div class="title">Maze</div>
+    <div class="meta-row">
+      <div class="badge">Level <span id="levelNumber">1</span>/7</div>
+      <div class="badge">Size <span id="levelSize">3×3</span></div>
+      <div class="badge">Time left <span id="timeLeft">--</span></div>
+      <div class="badge">Score <span id="totalScore">0</span></div>
+    </div>
+
+    <div class="frame">
+      <div id="grid"></div>
+    </div>
+
+    <div class="hud">
+      <div class="small-panel">Chances<br><span id="chances" style="font-size:18px">3</span></div>
+      <div class="small-panel">Limit<br><span id="levelLimit" style="font-size:18px">--</span></div>
+      <div class="small-panel">Used<br><span id="levelUsed" style="font-size:18px">0s</span></div>
+      <div class="small-panel">Best time<br><span id="bestTime" style="font-size:14px">—</span></div>
+    </div>
+
+    <div class="log" id="log" style="margin-top:10px">Welcome — place commands and press Run.</div>
+  </div>
+
+  <div class="panel">
+    <div class="heading">Commands</div>
+    <div id="commandsWrap" class="commands-list">
+      <div class="card" draggable="true" data-cmd="move">Move Forward</div>
+      <div class="card" draggable="true" data-cmd="left">Turn Left</div>
+      <div class="card" draggable="true" data-cmd="right">Turn Right</div>
+    </div>
+
+    <div style="margin-top:12px; font-size:medium;" class="small">
+      Drag a command to the Solution column or tap the card to add on to solution board.<br/><br/>
+      The sequence of the command cards should make the character reach the end of the puzzle
+    </div>
+
+    <div style="margin-top:14px" class="panel" aria-hidden="true">
+      <div class="heading">Controls</div>
+      <div class="exec-row">
+        <button id="runBtn" class="btn">Run</button>
+        <button id="clearBtn" class="btn secondary">Clear</button>
+        <button id="resetBtn" class="btn secondary">Reset</button>
+        <button id="nextBtn" class="btn secondary" style="display:none">Next Level</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="heading">Solution (drag here)</div>
+    <div id="solution" class="solution-board" ondragover="event.preventDefault()"></div>
+
+    <div class="small" style="margin-top:10px; font-size:medium;"></div>
+
+    <div style="margin-top:12px; font-size:xx-large;" class="panel">
+      <div class="heading">Per-level Bests</div>
+      <div id="bestsBox" class="small">No data yet</div>
+    </div>
+  </div>
+</div>
+
+<div id="modal">
+  <div class="modal-box">
+    <h3 id="modalTitle">Title</h3>
+    <div id="modalMsg" style="margin-top:8px"></div>
+    <div style="text-align:right;margin-top:12px">
+      <button id="modalOk" class="btn">OK</button>
+    </div>
+  </div>
+</div>
+
+<audio id="beepSound" src="audio/beep.wav"></audio>
+<audio id="errorSound" src="audio/error.mp3"></audio>
+<audio id="levelUpSound" src="audio/levelup.mp3"></audio>
+<audio id="failSound" src="audio/fail.mp3"></audio>
+
+<script>
+  /* ---------- Levels (kept original). Now you may put 6's to define the allowed path ---------- */
+const LEVELS = [
+  { size:{rows:4, cols:4}, timeLimit:20, grid:[
+      [2,6,6,6],
+      [1,0,1,6],
+      [0,0,0,6],
+      [0,1,1,3]
+  ]},
+  { size:{rows:5, cols:5}, timeLimit:22, grid:[
+      [2,6,6,6,1],
+      [0,0,1,6,0],
+      [0,0,0,6,1],
+      [0,1,0,6,6],
+      [0,0,0,1,3]
+  ]},
+
+  { size:{rows:6, cols:6}, timeLimit:25, grid:[
+      [3,0,0,0,1,0],
+      [6,1,1,0,0,0],
+      [6,6,6,1,1,0],
+      [0,1,6,0,0,0],
+      [0,1,6,1,0,1],
+      [1,0,6,6,6,2]
+  ]},
+  { size:{rows:7, cols:7}, timeLimit:40, grid:[
+      [2,6,1,0,0,0,0],
+      [1,6,1,0,1,1,0],
+      [0,6,6,6,6,6,6],
+      [1,0,1,0,1,0,6],
+      [0,0,0,0,1,0,6],
+      [0,1,1,0,0,0,6],
+      [0,0,0,0,1,1,3]
+  ]},
+
+  { size:{rows:8, cols:10}, timeLimit:50, grid:[
+  [2,6,1,0,0,0,1,0,0,0],
+  [1,6,1,0,1,0,1,0,1,0],
+  [1,6,6,6,1,0,0,0,1,0],
+  [1,1,1,6,0,0,1,0,0,0],
+  [0,0,0,6,1,1,1,1,1,0],
+  [1,1,0,6,6,6,6,6,6,6],
+  [0,0,0,1,1,1,0,1,0,6],
+  [1,1,0,0,0,0,0,0,0,3]
+  ]},
+
+  {size:{rows:9, cols:9}, timeLimit:70, grid:[
+  [3, 6, 1, 0, 0, 0, 0, 1, 0],
+  [1, 6, 1, 0, 1, 1, 0, 1, 0],
+  [1, 6, 0, 0, 0, 1, 0, 0, 1],
+  [1, 6, 1, 1, 0, 1, 0, 1, 0],
+  [0, 6, 6, 1, 0, 0, 0, 1, 0],
+  [0, 1, 6, 1, 1, 1, 0, 1, 0],
+  [0, 1, 6, 6, 6, 6, 6, 6, 6],
+  [0, 1, 1, 1, 1, 1, 1, 1, 6],
+  [0, 0, 0, 0, 0, 0, 1, 0, 2]
+  ]
+  },
+  /* custom 12x9 level appended (rows:9, cols:12) */
+  { size:{rows:9, cols:12}, timeLimit:90, grid:[
+    [2,6,6,1,0,0,0,1,0,0,0,0],
+    [1,1,6,1,0,1,0,1,0,1,0,0],
+    [0,0,6,6,6,1,0,0,0,1,0,0],
+    [1,0,1,1,6,1,1,1,0,1,1,0],
+    [1,0,0,0,6,0,0,1,0,0,0,0],
+    [1,1,1,1,6,6,6,1,1,1,0,0],
+    [0,0,0,0,1,0,6,1,1,0,0,0],
+    [0,1,1,1,1,1,6,0,1,1,1,0],
+    [1,1,1,1,1,1,6,6,6,6,6,3]
+  ]}
+  
+];
+
+/* ---------- State ---------- */
+let curLevelIndex = 0;
+let totalScore = 0;
+let totalTimeTaken = 0;
+let state = {
+  grid: [],
+  size: { rows: 3, cols: 3 },
+  player: {x:0,y:0, dir:0}, 
+  start:{x:0,y:0},
+  goal:{x:0,y:0},
+  timeLeft:0,
+  timerId: null,
+  chances: 3,
+  levelTimeUsed: 0,
+  isAnimating: false
+};
+
+/* ---------- Refs ---------- */
+const gridEl = document.getElementById('grid');
+const levelNumberEl = document.getElementById('levelNumber');
+const levelSizeEl = document.getElementById('levelSize');
+const timeLeftEl = document.getElementById('timeLeft');
+const totalScoreEl = document.getElementById('totalScore');
+const levelLimitEl = document.getElementById('levelLimit');
+const levelUsedEl = document.getElementById('levelUsed');
+const chancesEl = document.getElementById('chances');
+const logEl = document.getElementById('log');
+const solutionEl = document.getElementById('solution');
+const runBtn = document.getElementById('runBtn');
+const clearBtn = document.getElementById('clearBtn');
+const resetBtn = document.getElementById('resetBtn');
+const nextBtn = document.getElementById('nextBtn');
+const bestsBox = document.getElementById('bestsBox');
+const bestTimeEl = document.getElementById('bestTime');
+const modal = document.getElementById('modal');
+const modalTitle = document.getElementById('modalTitle');
+const modalMsg = document.getElementById('modalMsg');
+const modalOk = document.getElementById('modalOk');
+/* ---------- Timer Sound ---------- */
+const timerBeep = document.getElementById("beepSound");
+timerBeep.volume = 1.0;
+
+/* ---------- Error Sound ---------- */
+const errorSound = document.getElementById("errorSound");
+errorSound.volume = 1.0;
+function playErrorSound() {
+    errorSound.currentTime = 0; // rewind so it can play repeatedly
+    errorSound.play().catch(()=>{});
+}
+/* ---------- Level Up Sound ---------- */
+const levelUpSound = document.getElementById("levelUpSound");
+levelUpSound.volume = 1.0;
+function playLevelUpSound() {
+    levelUpSound.currentTime = 0;
+    levelUpSound.play().catch(()=>{});
+}
+/* ---------- Fail / Fake Goal Sound ---------- */
+const failSound = document.getElementById("failSound");
+failSound.volume = 1.0;
+function playFailSound() {
+    failSound.currentTime = 0;
+    failSound.play().catch(()=>{});
+}
+
+
+/* ---------- Helpers ---------- */
+function cloneGrid(g){ return g.map(r => r.slice()); }
+function findMarker(grid, val){ 
+  for(let y=0;y<grid.length;y++) 
+    for(let x=0;x<grid[y].length;x++) 
+      if(grid[y][x] === val) return {x,y}; 
+  return null; 
+}
+function sleep(ms){ return new Promise(res => setTimeout(res, ms)); }
+function formatTime(sec){ const mm=Math.floor(sec/60); const ss=sec%60; return mm>0?`${mm}m ${ss}s`:`${ss}s`}
+function getGap(){
+  try{
+    const raw = getComputedStyle(document.documentElement).getPropertyValue('--gap');
+    const v = parseInt(raw);
+    return Number.isFinite(v) ? v : 8;
+  }catch(e){ return 8; }
+}
+
+/* ---------- Local bests ---------- */
+const BEST_KEY = 'maze_level_bests_v1';
+function loadBests(){ try{ return JSON.parse(localStorage.getItem(BEST_KEY) || '{}'); }catch(e){return {}} }
+function saveBests(b){ localStorage.setItem(BEST_KEY, JSON.stringify(b)); updateBestsUI(); }
+function updateBestsUI(){
+  const b = loadBests();
+  if(Object.keys(b).length === 0){ 
+    bestsBox.innerHTML = '<div class="small">No bests yet</div>'; 
+    bestTimeEl.innerText='—'; 
+    return; 
+  }
+  let lines='';
+  for(let i=0;i<LEVELS.length;i++){ 
+    const key='L'+(i+1); 
+    if(b[key]) lines += `<div>Level ${i+1}: score ${b[key].score} — time ${formatTime(b[key].time)}</div>`; 
+  }
+  bestsBox.innerHTML = lines || '<div class="small">No bests yet</div>';
+  const curKey = 'L'+(curLevelIndex+1); 
+  if(b[curKey]){ 
+    bestTimeEl.innerText=formatTime(b[curKey].time);
+  } else { 
+    bestTimeEl.innerText='—';
+  }
+}
+
+/* ---------- Render grid ---------- */
+function renderLevel(highlightPlayer=true){
+  const rows = state.size.rows;
+  const cols = state.size.cols;
+  const gap = 8;
+
+  const frame = document.querySelector(".frame");
+  const availableWidth  = Math.max(120, frame.clientWidth  - 40);
+  const availableHeight = Math.max(120, frame.clientHeight - 40);
+  const cellSize = Math.floor(
+    Math.min(
+      (availableWidth - (cols-1)*gap) / cols,
+      (availableHeight - (rows-1)*gap) / rows
+    )
+  );
+
+  gridEl.style.width  = (cellSize * cols + (cols-1)*gap) + "px";
+  gridEl.style.height = (cellSize * rows + (rows-1)*gap) + "px";
+  gridEl.style.gridTemplateColumns = `repeat(${cols}, ${cellSize}px)`;
+  gridEl.style.gridTemplateRows    = `repeat(${rows}, ${cellSize}px)`;
+  gridEl.style.gap = `${gap}px`;
+  gridEl.innerHTML = '';
+
+  for(let y=0;y<rows;y++){
+    for(let x=0;x<cols;x++){
+      const div = document.createElement('div');
+      div.className = 'cell';
+
+      const v = state.grid[y][x];
+
+      if(v === 1) div.classList.add('wall');
+      if(v === 2) div.classList.add('start');
+      if (v === 3) {                          //trophy
+        const trophy = document.createElement("div");
+        trophy.style.width = "90%";
+        trophy.style.height = "90%";
+        trophy.style.display = "flex";
+        trophy.style.alignItems = "center";
+        trophy.style.justifyContent = "center";
+        trophy.style.pointerEvents = "none";
+
+        trophy.innerHTML = `
+            <svg viewBox="0 0 32 32" width="100%" height="100%">
+                <path fill="#FFD700" stroke="#B8860B" stroke-width="2"
+                    d="M22 4H10v4H6v4c0 4 3 7 7 7h6c4 0 7-3 7-7V8h-4V4z"/>
+                <rect x="12" y="19" width="8" height="4" fill="#DAA520"/>
+                <rect x="10" y="23" width="12" height="5" fill="#B8860B"/>
+            </svg>
+        `;
+
+        div.appendChild(trophy);
+    }
+
+
+
+      // OPTIONAL: uncomment if you want shortest-path visually shown
+      // if(v === 6) div.classList.add('path');
+
+      // draw player
+      if(x === state.player.x && y === state.player.y && highlightPlayer){
+        div.classList.add('player-highlight');
+
+        const charEl = document.createElement('div');
+        charEl.style.width="80%";
+        charEl.style.height="80%";
+        charEl.style.display="flex";
+        charEl.style.alignItems="center";
+        charEl.style.justifyContent="center";
+        charEl.innerHTML =
+            '<svg viewBox="0 0 24 24" width="100%" height="100%">' +
+            '  <path d="M12 2 L19 21 L12 17 L5 21 Z" fill="#3f3f3f"/>' +
+            '</svg>';
+
+        const rot =
+          (state.player.dir === 0) ? "rotate(90deg)" :
+          (state.player.dir === 1) ? "rotate(180deg)" :
+          (state.player.dir === 2) ? "rotate(270deg)" :
+                                      "rotate(0deg)";
+        charEl.style.transform = rot;
+
+        div.appendChild(charEl);
+      }
+      gridEl.appendChild(div);
+    }
+  }
+
+  levelNumberEl.textContent = curLevelIndex+1;
+  levelSizeEl.textContent = `${rows}×${cols}`;
+  timeLeftEl.textContent = `${state.timeLeft}s`;
+
+  // BLINK when below 10 seconds
+  if (state.timeLeft <= 10) {
+      timeLeftEl.classList.add("blink");
+  } else {
+      timeLeftEl.classList.remove("blink");
+  }
+
+  totalScoreEl.textContent = totalScore;
+  levelLimitEl.textContent = `${LEVELS[curLevelIndex].timeLimit}s`;
+  chancesEl.textContent = state.chances;
+  levelUsedEl.textContent = `${state.levelTimeUsed}s`;
+
+  updateBestsUI();
+}
+
+/* ---------- Timer ---------- */
+function startTimer(){
+  stopTimer();
+  state.timeLeft = LEVELS[curLevelIndex].timeLimit;
+  state.levelTimeUsed = 0;
+  renderLevel();
+  state.timerId = setInterval(()=>{
+    state.timeLeft--;
+    state.levelTimeUsed++;
+    renderLevel();
+    // When time is almost over → play beep
+    if (state.timeLeft <= 10 && state.timeLeft > 0) {
+      timerBeep.play().catch(()=>{});
+    } 
+
+    // Time is up
+    if (state.timeLeft <= 0){
+        stopTimer();
+        onLevelFailedTime();
+    }
+
+  },1000);
+}
+function stopTimer(){ 
+  if(state.timerId){ clearInterval(state.timerId); state.timerId=null; }
+}
+
+/* ---------- Load level ---------- */
+function loadLevel(index){
+  curLevelIndex = index;
+  const lvl = LEVELS[index];
+
+  state.size = lvl.size;
+  state.grid = cloneGrid(lvl.grid);
+
+  state.start = findMarker(state.grid,2);
+  state.goal  = findMarker(state.grid,3);
+
+  state.player.x = state.start.x;
+  state.player.y = state.start.y;
+  state.player.dir = 0;
+
+  // state.chances = 3;
+  // chancesEl.textContent = state.chances;
+
+  solutionEl.innerHTML = '';
+  nextBtn.style.display = 'none';
+  writeLog(`Level ${curLevelIndex+1} loaded. Place commands and Run (Animate).`);
+  startTimer();
+  renderLevel();
+}
+
+/* ---------- WALL & PATH VALIDATION WITH TILE 6 SYSTEM ---------- */
+
+function tileIsAllowed(tile){
+  // ✔ Allowed tiles: start(2), goal(3), shortest-path(6)
+  return tile === 2 || tile === 3 || tile === 6;
+}
+
+/* ---------- Run animation ---------- */
+async function runAnimated(){
+  let steppedWrong = false;
+  if(state.isAnimating) return;
+
+  const seqEls = Array.from(solutionEl.children);
+  if(seqEls.length === 0){ writeLog("Please add commands before running."); return; }
+
+  const seq = seqEls.map(el => el.dataset.cmd);
+
+  state.isAnimating = true;
+  setControlsEnabled(false);
+
+  let px = state.player.x;
+  let py = state.player.y;
+  let pd = state.player.dir;
+
+  let chances = state.chances;
+  let stepsUsed = 0;
+
+  writeLog("Running sequence...");
+
+  for(let i=0;i<seq.length;i++){
+    const cmd = seq[i];
+    highlightSolutionAt(i);
+
+    await sleep(400);
+    // STOP if chances are 0
+    if (state.chances <= 0) {
+        state.isAnimating = false;
+        setControlsEnabled(true);
+        showModal("No Chances Left", "You lost all chances.", () => onLevelFailed());
+        return;
+    }
+
+
+    if(cmd === "move"){
+      let nx = px;
+      let ny = py;
+      if(pd === 0) nx++;
+      if(pd === 1) ny++;
+      if(pd === 2) nx--;
+      if(pd === 3) ny--;
+
+      const inBounds = (nx>=0 && ny>=0 && nx<state.size.cols && ny<state.size.rows);
+      const tile = inBounds ? state.grid[ny][nx] : 1;
+
+// 1. WALL → still immediate block (cannot walk through walls)
+// if (tile === 1) {
+//     flashWall(nx, ny);
+//     steppedWrong = true; // even wall counts as wrong path
+//     // reset player position to start but continue execution
+//     px = state.start.x;
+//     py = state.start.y;
+//     pd = 0;
+//     state.player.x = px;
+//     state.player.y = py;
+//     state.player.dir = pd;
+//     renderLevel();
+//     continue;
+// }
+
+// ❌ OUT OF BOUNDS
+if (!inBounds) {
+    steppedWrong = true;
+    playErrorSound();//audio
+    state.chances--;
+    chancesEl.textContent = state.chances;
+    solutionEl.innerHTML = '';
+
+    showModal(
+        "Out of Bounds!",
+        "You moved outside the maze!<br>-1 Chance",
+        () => {
+            // Reset player
+            px = state.start.x;
+            py = state.start.y;
+            pd = 0;
+
+            state.player.x = px;
+            state.player.y = py;
+            state.player.dir = pd;
+
+            renderLevel();
+
+            if (state.chances <= 0) {
+                onLevelFailed();
+            }
+        }
+    );
+
+    state.isAnimating = false;
+    setControlsEnabled(true);
+    return;
+}
+
+// ❌ WALL COLLISION
+if (tile === 1) {
+    flashWall(nx, ny);
+    steppedWrong = true;
+    playErrorSound();//audio
+    state.chances--;
+    chancesEl.textContent = state.chances;
+    solutionEl.innerHTML = '';
+    showModal(
+        "Wall Hit!",
+        "You bumped into a wall!<br>-1 Chance",
+        () => {
+            // Reset player
+            px = state.start.x;
+            py = state.start.y;
+            pd = 0;
+
+            state.player.x = px;
+            state.player.y = py;
+            state.player.dir = pd;
+
+            renderLevel();
+
+            if (state.chances <= 0) {
+                onLevelFailed();
+            }
+        }
+    );
+
+    state.isAnimating = false;
+    setControlsEnabled(true);
+    return;
+}
+
+
+
+// 2. Allowed tile for shortest path = 2,3,6
+//    If tile is 0 → mark wrong but ALLOW walking
+if (tile === 0) {
+    steppedWrong = true; // WRONG PATH FLAG
+}
+
+// move is valid
+px = nx;
+py = ny;
+stepsUsed++;
+
+    }
+
+    else if(cmd==="left")  pd = (pd+3)%4;
+    else if(cmd==="right") pd = (pd+1)%4;
+
+    state.player.x = px;
+    state.player.y = py;
+    state.player.dir = pd;
+    renderLevel();
+
+    // REACHED GOAL
+if (state.grid[py][px] === 3) {
+
+    if (steppedWrong) {
+        // WRONG PATH AFTER FULL SEQUENCE
+        playFailSound();  // 🔊 Play fake goal fail sound
+        state.chances--;
+        chancesEl.textContent = state.chances;
+
+        showModal(
+            "Wrong Path",
+            "You did NOT follow the SHORTEST path.<br> -1 Chance",
+            () => {
+                if(state.chances <= 0){
+                    onLevelFailed();
+                } else {
+                    loadLevel(curLevelIndex); // restart same level
+                }
+            }
+        );
+
+        state.isAnimating = false;
+        setControlsEnabled(true);
+        return;
+    }
+
+    // ✔ CORRECT PATH — success
+    highlightSolutionAt(-1);
+    state.chances = chances;
+    state.isAnimating=false;
+    setControlsEnabled(true);
+    onLevelComplete(stepsUsed);
+    return;
+}
+
+  }
+
+  highlightSolutionAt(-1);
+  // If player stepped wrong but didn't reach goal → it still counts as wrong
+if (steppedWrong) {
+    state.chances--;
+    chancesEl.textContent = state.chances;
+
+    showModal(
+        "Wrong Path",
+        "You did NOT follow the required path.<br> -1 Chance",
+        () => {
+            if(state.chances <= 0){
+                onLevelFailed();
+            } else {
+                loadLevel(curLevelIndex); 
+            }
+        }
+    );
+
+    state.isAnimating = false;
+    setControlsEnabled(true);
+    return;
+}
+
+  writeLog("Sequence ended but did NOT reach the goal.");
+  state.player.x = state.start.x;
+  state.player.y = state.start.y;
+  state.player.dir = 0;
+  renderLevel();
+  state.isAnimating=false;
+  setControlsEnabled(true);
+}
+
+/* ---------- Flash wall ---------- */
+function flashWall(x,y){
+  const idx = y * state.size.cols + x;
+  const cell = gridEl.children[idx];
+  if(!cell) return;
+  cell.style.boxShadow = "0 0 0 8px rgba(255,0,0,0.3) inset";
+  setTimeout(()=> cell.style.boxShadow="",300);
+}
+
+/* ---------- Helpers continued ---------- */
+function setControlsEnabled(en){
+  runBtn.disabled=!en;
+  clearBtn.disabled=!en;
+  resetBtn.disabled=!en;
+  nextBtn.disabled=!en;
+}
+
+function highlightSolutionAt(index){
+  const items = Array.from(solutionEl.children);
+  items.forEach((it,i)=> it.classList.toggle('active', i===index));
+}
+
+/* ---------- Scoring ---------- */
+function onLevelComplete(stepsUsed){
+  stopTimer();
+  playLevelUpSound();   // 🔊 Play level-up sound!
+  state.chances = 3;
+  chancesEl.textContent = state.chances;
+  const lvl = curLevelIndex+1;
+  const base = lvl * 200;
+  const timeBonus = state.timeLeft * 10;
+  const penalty = stepsUsed * 5;
+  const score = Math.max(0, base + timeBonus - penalty);
+
+  totalScore += score;
+
+  writeLog(`🎉 Level ${lvl} complete! +${score}`);
+
+  const b = loadBests();
+  const k = "L"+lvl;
+  const timeUsed = LEVELS[curLevelIndex].timeLimit - state.timeLeft;
+
+  if(!b[k] || score > b[k].score){
+    b[k] = {score:score, time:timeUsed};
+    saveBests(b);
+  }
+
+  if(curLevelIndex < LEVELS.length-1){
+    showModal("Level Complete",`Score: ${score}`,()=>loadLevel(curLevelIndex+1));
+  }
+  else{
+    playLevelUpSound();   // 🔊 Play level-up sound!
+    showModal(
+  "All Levels Complete!",
+  `Final Score: ${totalScore}<br>Total Time: ${totalTimeTaken}s`,
+  () => window.location.href = "congrats_M.html"
+);
+
+  }
+}
+
+/* ---------- Failed ---------- */
+function onLevelFailedTime(){
+   // reduce chance
+    state.chances--;
+    chancesEl.textContent = state.chances;
+
+    // CASE 1: No chances left → full fail
+    if (state.chances <= 0) {
+        showModal(
+            "Time Up",
+            "You lost all chances.",
+            () => onLevelFailed()    // goes to FAILED PAGE
+        );
+        return;
+    }
+
+    // CASE 2: Still chances left → restart same level
+    showModal(
+        "Time Up",
+        `You lost a chance (${state.chances} left).`,
+        () => loadLevel(curLevelIndex)
+    );
+}
+function onLevelFailed(){
+  playFailSound();  // 🔊 Play fake goal fail sound
+  stopTimer();
+  totalTimeTaken += LEVELS[curLevelIndex].timeLimit;
+
+  showModal(
+    'Game Over',
+    `You failed the game.`,
+    () => window.location.href = "failed_M.html"
+  );
+}
+
+
+function writeLog(t){ logEl.textContent = t; }
+function showModal(t,h,cb){
+  modalTitle.textContent=t;
+  modalMsg.innerHTML=h;
+  modal.style.display="flex";
+  modalOk.onclick=()=>{ modal.style.display="none"; cb && cb(); };
+}
+
+function createSolItem(cmd){
+  const el=document.createElement("div");
+  el.className="sol-item";
+  el.dataset.cmd=cmd;
+  el.textContent=(cmd==="move"?"Move":cmd==="left"?"Left":"Right");
+   // Disable removal in perfect-path mode
+  el.onclick = (e) => {
+      e.stopPropagation();
+      // Do nothing
+  };
+  return el;
+}
+
+function wireCommandCards(){
+  const cards=document.querySelectorAll(".card");
+  cards.forEach(c=>{
+    c.addEventListener("dragstart",e=>e.dataTransfer.setData("text/plain",c.dataset.cmd));
+    c.addEventListener("click",()=>solutionEl.appendChild(createSolItem(c.dataset.cmd)));
+  });
+  solutionEl.addEventListener("dragover",e=>e.preventDefault());
+  solutionEl.addEventListener("drop",e=>{
+    e.preventDefault();
+    const cmd=e.dataTransfer.getData("text/plain");
+    if(cmd) solutionEl.appendChild(createSolItem(cmd));
+  });
+}
+
+runBtn.onclick=()=>runAnimated();
+clearBtn.onclick=()=>solutionEl.innerHTML="";
+resetBtn.onclick=()=>{ 
+  resetBtn.onclick = () => {
+    showModal(
+        "Restart Game?",
+        "Are you sure you want to restart the game from Level 1?",
+        () => {
+            totalScore = 0;
+            totalTimeTaken = 0;
+            state.chances = 3;
+            loadLevel(0);   // Restart from Level 1
+        }
+    );
+};
+
+};
+nextBtn.onclick=()=>loadLevel(curLevelIndex+1);
+
+function resetGame(){ 
+  totalScore = 0; 
+  totalTimeTaken = 0; 
+  state.chances = 3;
+  loadLevel(0);   // ← goes to Level 1 (index 0)
+}
+
+
+/* ---------- Init ---------- */
+wireCommandCards();
+loadLevel(0);
+
+</script>
+</body>
+</html>
