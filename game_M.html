@@ -628,6 +628,7 @@ function highlightSolutionAt(index){
 }
 //animate
 async function runAnimated(){
+  stopTimer();
   if(state.isAnimating) return;
   const seqEls = Array.from(solutionEl.children);
   if(seqEls.length === 0){ writeLog('Please add commands before running.'); return; }
@@ -681,7 +682,7 @@ async function runAnimated(){
               state.player.dir = pd;
 
               solutionEl.innerHTML = '';
-
+              startTimer();
               renderLevel(true);
 
               // If no chances left → fail
@@ -722,7 +723,7 @@ async function runAnimated(){
 
                 // Clear solution
                 solutionEl.innerHTML = '';
-
+                startTimer();
                 renderLevel(true);
 
                 // If chances finished → fail
@@ -847,7 +848,7 @@ async function runAnimated(){
   state.isAnimating=false;
   setControlsEnabled(true);
 }
-//function fivth(){
+//function fifth(){
   
 //}
 

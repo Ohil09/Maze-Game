@@ -496,7 +496,7 @@ function renderLevel(highlightPlayer=true){
 
 /* ---------- Timer ---------- */
 function startTimer(){
-  stopTimer();
+  // stopTimer();
   state.timeLeft = LEVELS[curLevelIndex].timeLimit;
   state.levelTimeUsed = 0;
   renderLevel();
@@ -558,6 +558,7 @@ function tileIsAllowed(tile){
 
 /* ---------- Run animation ---------- */
 async function runAnimated(){
+  stopTimer();
   let steppedWrong = false;
   if(state.isAnimating) return;
 
@@ -638,7 +639,7 @@ if (!inBounds) {
             state.player.x = px;
             state.player.y = py;
             state.player.dir = pd;
-
+            startTimer();
             renderLevel();
 
             if (state.chances <= 0) {
@@ -672,7 +673,7 @@ if (tile === 1) {
             state.player.x = px;
             state.player.y = py;
             state.player.dir = pd;
-
+            startTimer();
             renderLevel();
 
             if (state.chances <= 0) {
@@ -838,6 +839,7 @@ function onLevelComplete(stepsUsed){
 
   }
 }
+
 
 /* ---------- Failed ---------- */
 function onLevelFailedTime(){
