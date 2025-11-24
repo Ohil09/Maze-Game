@@ -13,98 +13,100 @@
   --panel-light:#fff8e8;
   --panel-border:#ffdba6;
   --text-dark:#3c2f19;
+
+  /* Responsive font scales */
+  --fs-title:clamp(20px,4vw,32px);
+  --fs-heading:clamp(14px,2.4vw,20px);
+  --fs-text:clamp(13px,1.6vw,17px);
+  --fs-btn:clamp(14px,2vw,20px);
 }
 
-/* Full-screen, no scroll */
+/* Full-screen, centered layout with NO scrollbars */
 html,body{
   margin:0;
   height:100vh;
   width:100vw;
-  overflow:hidden;     /* No scrollbars anywhere */
+  overflow:hidden;
   font-family:Arial, Helvetica, sans-serif;
   background:linear-gradient(180deg,var(--sky-blue),var(--sky-light));
   display:flex;
   justify-content:center;
   align-items:center;
-  font-size: larger;
 }
 
-/* Perfectly centered container */
+/* Main card container */
 .container{
   width:88%;
-  max-width:780px;
-  height:110vh;
+  max-width:760px;
   background:var(--panel-light);
   border:4px solid var(--panel-border);
   border-radius:18px;
-  padding:40px 24px;   /* compact padding */
+  padding:clamp(8px,2.5vh,20px) clamp(14px,3vw,28px);
   box-shadow:0 10px 18px rgba(0,0,0,0.15);
 
-  /* Trick: limit height exactly so content always fits */
+  /* Height always fits safely on any screen (NO scroll) */
   max-height:82vh;
   display:flex;
   flex-direction:column;
-  justify-content:flex-start;
 }
 
 /* Title */
 h1{
   text-align:center;
-  font-size:25px;
+  font-size:var(--fs-title);
   font-weight:900;
   color:var(--mario-red);
-  margin:4px 0 10px 0;
+  margin:0 0 clamp(6px,2vh,12px) 0;
   text-shadow:0 0 6px rgba(255,120,120,0.35);
 }
 
 /* Section headings */
 h2{
-  margin:10px 0 4px 0;
+  margin:clamp(6px,1vh,10px) 0 4px 0;
   color:#b44a00;
   font-weight:900;
-  font-size: 13px;
+  font-size:var(--fs-heading);
 }
 
-/* Description & rules text */
+/* Normal text */
 p, li{
-  font-size:15px;
-  line-height:1.4;
+  font-size:var(--fs-text);
+  line-height:1.35;
   color:var(--text-dark);
-  margin:4px 0;
+  margin:3px 0;
 }
 
-/* Reduce vertical list spacing */
+/* List spacing */
 ul{
-  margin:0 0 6px 0;
+  margin:0 0 8px 0;
   padding-left:20px;
 }
 
 /* Preview button */
-.btn {
-  display:inline-block;
-  padding:8px;
+.btn{
+  display:block;
+  padding:clamp(6px,1.4vh,10px);
   border-radius:8px;
-  margin:6px auto 10px auto;
+  margin:clamp(2px,0.5vh,6px) auto;
   font-weight:800;
-  border:1px solid #000000;
+  border:1px solid #000;
   background:linear-gradient(90deg,#ffd447,#ff9c48);
-  font-size:18px;
+  font-size:var(--fs-btn);
   width:100%;
   max-width:740px;
   cursor:pointer;
   color:#000;
   text-align:center;
+  text-decoration:none;
 }
-.btn:hover{
-  transform:scale(1.04);
-}
+.btn:hover{ transform:scale(1.04); }
 
 /* Game mode buttons */
 .start-btn{
   width:100%;
-  padding:10px;
-  margin-top:10px;
-  font-size:18px;
+  padding:clamp(8px,1.6vh,12px);
+  margin-top:clamp(6px,1vh,12px);
+  font-size:var(--fs-btn);
   font-weight:900;
   background:linear-gradient(90deg,#ffd447,#ff9c48);
   border:1px solid #000000;
@@ -113,8 +115,31 @@ ul{
   color:#4a2a00;
   box-shadow:0 6px 12px rgba(0,0,0,0.2);
 }
-.start-btn:hover{
-  transform:scale(1.04);
+.start-btn:hover{ transform:scale(1.04); }
+
+/* --- EXTRA HEIGHT OPTIMIZATION FOR SMALL SCREEN LAPTOPS --- */
+@media (max-height:650px){
+  .container{ max-height:88vh; }
+}
+
+/* Very low height screens (e.g., 600px) */
+@media (max-height:580px){
+  :root{
+    --fs-title:clamp(18px,3vw,26px);
+    --fs-heading:clamp(12px,2vw,18px);
+    --fs-text:clamp(11px,1.4vw,15px);
+    --fs-btn:clamp(12px,1.8vw,18px);
+  }
+  .container{
+    padding:12px 14px;
+  }
+}
+
+/* Phones (narrow width) */
+@media (max-width:480px){
+  .container{
+    padding:12px 14px;
+  }
 }
 </style>
 </head>
@@ -135,11 +160,11 @@ ul{
   <ul>
     <li>Drag commands into the Solution box.</li>
     <li>Use <b>Move Forward</b>, <b>Turn Left</b>, and <b>Turn Right</b>.</li>
-    <li>The sequence of the command cards should make the character reach the end of the puzzle</li>
+    <li>The sequence should make the character reach the end of the puzzle.</li>
     <li>You have limited time in each level.</li>
-    <li>Hitting a wall reduces a chance. Lose all 3 → fail.</li>
-    <li>Reaching the goal completes the level and gives score.</li>
-    <li>Click Preview to see the game layout.</li>
+    <li>Hitting a wall reduces a chance.</li>
+    <li>Reaching the goal adds score.</li>
+    <li>Click Preview to see the layout.</li>
   </ul>
 
   <a href="photos/maze_preview.png" class="btn">Preview</a>
