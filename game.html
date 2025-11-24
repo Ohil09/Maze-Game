@@ -774,6 +774,8 @@ if (steppedWrong) {
   state.player.x = state.start.x;
   state.player.y = state.start.y;
   state.player.dir = 0;
+  solutionEl.innerHTML = '';
+  startTimer();
   renderLevel();
   state.isAnimating=false;
   setControlsEnabled(true);

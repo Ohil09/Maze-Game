@@ -842,6 +842,7 @@ async function runAnimated(){
     state.player.x = state.start.x; state.player.y = state.start.y; state.player.dir = 0;
     renderLevel(true);
     solutionEl.innerHTML = '';
+    startTimer();
     writeLog('Sequence executed but goal not reached. Modify commands and try again.');
   }
 
