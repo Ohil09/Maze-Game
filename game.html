@@ -809,8 +809,8 @@ function onLevelComplete(stepsUsed){
   chancesEl.textContent = state.chances;
   const lvl = curLevelIndex+1;
   const base = lvl * 200;
-  const timeBonus = state.timeLeft * 10;
-  const penalty = stepsUsed * 5;
+  const timeBonus = state.timeLeft * 15;
+  const penalty = stepsUsed * 8;
   const score = Math.max(0, base + timeBonus - penalty);
 
   totalScore += score;
