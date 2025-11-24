@@ -780,8 +780,8 @@ async function runAnimated(){
         "Fake Goal",
         "This is a <b>FAKE GOAL</b> — try another path!",
         () => {
-            solutionEl.innerHTML = '';  // Clear solution
             startTimer();
+            solutionEl.innerHTML = '';  // Clear solution
             writeLog("Try a different route.");
         }
     );
