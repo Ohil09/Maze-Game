@@ -8,43 +8,39 @@
 <style>
 :root{
   --sky-blue:#9adaff;
-  --sky-light:#c2e4ff;
+  --sky-light:#c8e9ff;
   --mario-red:#ff4d4d;
   --panel-light:#fff8e8;
   --panel-border:#ffdba6;
   --text-dark:#3c2f19;
-
-  /* Responsive font sizes */
-  --fs-base:clamp(14px,1.6vw,18px);
-  --fs-title:clamp(24px,4vw,32px);
-  --fs-section:clamp(18px,3vw,24px);
-  --fs-button:clamp(16px,2.4vw,20px);
 }
 
-/* Full-screen, centered, no scroll on normal screens */
+/* Full-screen, no scroll */
 html,body{
   margin:0;
   height:100vh;
   width:100vw;
-  overflow:hidden;  /* overridden on very small screens */
+  overflow:hidden;     /* No scrollbars anywhere */
   font-family:Arial, Helvetica, sans-serif;
   background:linear-gradient(180deg,var(--sky-blue),var(--sky-light));
   display:flex;
   justify-content:center;
   align-items:center;
-  font-size:var(--fs-base);
+  font-size: larger;
 }
 
-/* Centered card */
+/* Perfectly centered container */
 .container{
-  width:90%;
+  width:88%;
   max-width:780px;
+  height:110vh;
   background:var(--panel-light);
   border:4px solid var(--panel-border);
   border-radius:18px;
-  padding:18px 20px;
+  padding:40px 24px;   /* compact padding */
   box-shadow:0 10px 18px rgba(0,0,0,0.15);
 
+  /* Trick: limit height exactly so content always fits */
   max-height:82vh;
   display:flex;
   flex-direction:column;
@@ -54,7 +50,7 @@ html,body{
 /* Title */
 h1{
   text-align:center;
-  font-size:var(--fs-title);
+  font-size:20px;
   font-weight:900;
   color:var(--mario-red);
   margin:4px 0 10px 0;
@@ -66,39 +62,38 @@ h2{
   margin:10px 0 4px 0;
   color:#b44a00;
   font-weight:900;
-  font-size:var(--fs-section);
+  font-size: 13px;
 }
 
-/* Body text */
+/* Description & rules text */
 p, li{
-  font-size:var(--fs-base);
+  font-size:15px;
   line-height:1.4;
   color:var(--text-dark);
   margin:4px 0;
 }
 
-/* List spacing */
+/* Reduce vertical list spacing */
 ul{
   margin:0 0 6px 0;
   padding-left:20px;
 }
 
-/* Preview button (link styled as button) */
-.btn{
+/* Preview button */
+.btn {
   display:inline-block;
   padding:8px;
   border-radius:8px;
-  margin:8px auto 12px auto;
+  margin:6px auto 10px auto;
   font-weight:800;
   border:1px solid #000000;
   background:linear-gradient(90deg,#ffd447,#ff9c48);
-  font-size:var(--fs-button);
+  font-size:18px;
   width:100%;
   max-width:740px;
   cursor:pointer;
   color:#000;
   text-align:center;
-  text-decoration:none;
 }
 .btn:hover{
   transform:scale(1.04);
@@ -109,7 +104,7 @@ ul{
   width:100%;
   padding:10px;
   margin-top:10px;
-  font-size:var(--fs-button);
+  font-size:18px;
   font-weight:900;
   background:linear-gradient(90deg,#ffd447,#ff9c48);
   border:1px solid #000000;
@@ -120,31 +115,6 @@ ul{
 }
 .start-btn:hover{
   transform:scale(1.04);
-}
-
-/* ---------- RESPONSIVE TWEAKS ---------- */
-
-/* Very short screens (e.g., low height laptops, small windows) */
-@media (max-height:650px){
-  html,body{
-    overflow:auto;           /* allow page scroll when needed */
-    align-items:flex-start;  /* card moves a bit up instead of strict center */
-  }
-  .container{
-    margin:18px auto;
-    max-height:none;         /* let content take full height if needed */
-  }
-}
-
-/* Very narrow phones */
-@media (max-width:480px){
-  .container{
-    padding:14px 14px;
-    border-width:3px;
-  }
-  ul{
-    padding-left:16px;
-  }
 }
 </style>
 </head>
@@ -165,7 +135,7 @@ ul{
   <ul>
     <li>Drag commands into the Solution box.</li>
     <li>Use <b>Move Forward</b>, <b>Turn Left</b>, and <b>Turn Right</b>.</li>
-    <li>The sequence of the command cards should make the character reach the end of the puzzle.</li>
+    <li>The sequence of the command cards should make the character reach the end of the puzzle</li>
     <li>You have limited time in each level.</li>
     <li>Hitting a wall reduces a chance. Lose all 3 → fail.</li>
     <li>Reaching the goal completes the level and gives score.</li>
