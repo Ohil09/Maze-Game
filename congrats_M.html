@@ -15,7 +15,6 @@
   --text-dark:#3c2f19;
 }
 
-/* Fullscreen centered layout */
 html,body{
   margin:0;
   height:100vh;
@@ -28,7 +27,6 @@ html,body{
   align-items:center;
 }
 
-/* Main box */
 .box{
   width:88%;
   max-width:780px;
@@ -42,7 +40,6 @@ html,body{
   position:relative;
 }
 
-/* Soft confetti glow around the box */
 .box::after{
   content:"";
   position:absolute;
@@ -53,14 +50,12 @@ html,body{
   pointer-events:none;
 }
 
-/* Emoji pulse */
 .emoji{
   font-size:50px;
   margin-bottom:8px;
   animation:pulse 1.4s infinite ease-in-out;
 }
 
-/* Title */
 h1{
   font-size:34px;
   margin:0 0 10px 0;
@@ -69,21 +64,18 @@ h1{
   text-shadow:0 0 6px rgba(255,120,120,0.35);
 }
 
-/* Message */
 p{
   font-size:18px;
   color:var(--text-dark);
   font-weight:600;
 }
 
-/* Tiny subtext */
 .small{
   margin-top:6px;
   font-size:14px;
   opacity:0.75;
 }
 
-/* Button */
 button{
   width:100%;
   max-width:300px;
@@ -104,7 +96,6 @@ button:hover{
   transform:scale(1.06);
 }
 
-/* Animations */
 @keyframes popIn {
   from{ opacity:0; transform:scale(0.85); }
   to{ opacity:1; transform:scale(1); }
@@ -134,7 +125,7 @@ button:hover{
   window.onload = () => {
     const s = document.getElementById("winSound");
     s.volume = 1.0;
-    s.play().catch(()=>{});   // prevents browser autoplay blocking issues
+    s.play().catch(()=>{});
   };
 </script>
 </body>
