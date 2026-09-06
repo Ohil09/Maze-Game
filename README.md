@@ -2,7 +2,7 @@
 
 ### A command-based maze puzzle game
 
-Twisted Trails is a browser-based maze game created as a **BCA student project**.  
+Twisted Trails is a browser-based maze game created as a **BCA project**.  
 The player plans a sequence of commands, guides a character through a maze, avoids walls and traps, and reaches the goal before time runs out.
 
 > **Navigate the twists. Outsmart the traps.**
@@ -36,21 +36,18 @@ Follow the exact shortest path. Reaching the goal through any other route counts
 - Two gameplay modes: Normal and Precision
 - Drag-and-drop command cards
 - Tap command cards to add them on smaller screens
-- Animated command execution
 - Countdown timer for every level
 - Three chances per level
 - Collision detection for walls and out-of-bounds movement
 - Fake goals in Normal Mode
-- Shortest-path validation in Precision Mode
 - Score calculation based on level, time, and moves
-- Per-level best scores saved in browser `localStorage`
 - Sound effects for countdown, errors, level completion, success, and failure
 - Responsive layout for desktop and mobile screens
 - Congratulations and Game Over screens
 
 ## How to Play
 
-1. Open the game from the home page.
+1. Open the game from [the home page](https://ohil09.github.io/Maze-Game/).
 2. Choose **Normal Mode** or **Precision Mode**.
 3. Drag command cards into the **Solution** column, or tap a card to add it.
 4. Arrange the commands in the order the character should perform them.
@@ -67,18 +64,6 @@ Follow the exact shortest path. Reaching the goal through any other route counts
 - In Precision Mode, leaving the shortest path costs one chance.
 - A level must be completed before the next level is unlocked.
 
-## Scoring
-
-The score rewards fast and efficient solutions:
-
-```text
-Level score = level base + time bonus - step penalty
-```
-
-- Higher levels provide a larger base score.
-- Remaining time increases the score.
-- Every command used adds a small penalty.
-- Best scores and completion times are stored separately for each level.
 
 ## Technologies Used
 
@@ -89,24 +74,6 @@ Level score = level base + time bonus - step penalty
 - **HTML Audio** - game sound effects
 
 No external framework or database is required.
-
-## Project Structure
-
-```text
-MAZE_FINAL/
-├── index.html          # Home page and mode selection
-├── game_M.html         # Normal Mode
-├── game.html           # Precision Mode
-├── congrats_M.html     # Successful completion screen
-├── failed_M.html       # Game Over screen
-├── css/
-│   └── game.css        # Shared game styles
-├── js/
-│   └── engine.js       # Shared game engine
-├── audio/              # Sound effects
-└── photos/
-    └── maze_preview.png
-```
 
 ## How to Run
 
@@ -154,11 +121,7 @@ This project helped me practise:
 
 ## Author
 
-**[Your Name]**  
-BCA Student  
-
+Ohil Raj S  
+ 
 This project was created as an academic project to demonstrate front-end development, JavaScript programming, and game-design concepts.
 
-## License
-
-This project is intended for educational and academic use.
