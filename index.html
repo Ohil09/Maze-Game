@@ -3,576 +3,593 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Twisted Trails — Maze Puzzle Game</title>
-  <meta name="description" content="Navigate mind-bending mazes using command cards. Outsmart traps, beat the clock, and prove your puzzle skills in Normal or Precision mode." />
-<style>
-  :root {
-    --sky-blue: #7e97c4;
-    --sky-light: #90a9e8;
-    --cloud-white: #ffffff;
-    --mario-red: #b72828;
-    --pipe-green: #4ad253;
-    --coin-yellow: #f23615;
-    --panel-light: #fff6e0;
-    --panel-border: #e2bd85;
-    --text-dark: #000000;
-    --muted: #604121;
-    --shadow-lg: 0 10px 18px rgba(85, 60, 60, 0.12);
-  }
+  <title>Twisted Trails — Maze Kart</title>
+  <meta name="description" content="Choose your race and conquer the Twisted Trails maze." />
+  <style>
+    :root {
+      --sky: #7e97c4;
+      --sky-bright: #9dc8ec;
+      --red: #b72828;
+      --red-dark: #7e171d;
+      --green: #4ad253;
+      --green-dark: #267a2d;
+      --yellow: #ffd447;
+      --cream: #fff6e0;
+      --cream-light: #fffdf6;
+      --ink: #271512;
+      --muted: #604121;
+      --border: #e2bd85;
+      --shadow: 0 16px 0 rgba(78, 42, 27, 0.14), 0 24px 40px rgba(48, 69, 104, 0.22);
+    }
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-  html {
-    height: 100%;
-    font-size: 16px;
-  }
+    html { min-height: 100%; }
 
-  body {
-    min-height: 100vh;
-    font-family: "Courier New", monospace, system-ui;
-    background:
-      radial-gradient(900px 600px at 20% 20%, rgba(255,255,255,0.6), transparent 60%),
-      radial-gradient(900px 600px at 80% 80%, rgba(255,255,255,0.45), transparent 60%),
-      linear-gradient(180deg, var(--sky-blue) 0%, #7fc8ff 60%, #74c0ff 100%);
-    color: var(--text-dark);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow-x: hidden;
-    position: relative;
-  }
-
-  /* ---------- Animated Background ---------- */
-  .bg-grid {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    overflow: hidden;
-    pointer-events: none;
-  }
-
-  .bg-grid::before {
-    content: '';
-    position: absolute;
-    inset: -50%;
-    background:
-      radial-gradient(ellipse 600px 400px at 20% 30%, rgba(255,255,255,0.35), transparent),
-      radial-gradient(ellipse 500px 350px at 75% 70%, rgba(255,255,255,0.25), transparent);
-    animation: bgShift 12s ease-in-out infinite alternate;
-  }
-
-  @keyframes bgShift {
-    from { transform: translate(0, 0) scale(1); }
-    to   { transform: translate(30px, -20px) scale(1.05); }
-  }
-
-  /* Floating particles */
-  .particle {
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.55);
-    pointer-events: none;
-    animation: float linear infinite;
-  }
-
-  .particle:nth-child(1)  { width: 6px;  height: 6px;  left: 10%; animation-duration: 18s; animation-delay: 0s;   }
-  .particle:nth-child(2)  { width: 4px;  height: 4px;  left: 25%; animation-duration: 22s; animation-delay: -4s;  background: rgba(255,255,255,0.4); }
-  .particle:nth-child(3)  { width: 8px;  height: 8px;  left: 40%; animation-duration: 15s; animation-delay: -2s;  }
-  .particle:nth-child(4)  { width: 5px;  height: 5px;  left: 55%; animation-duration: 20s; animation-delay: -6s;  background: rgba(255,255,255,0.45); }
-  .particle:nth-child(5)  { width: 7px;  height: 7px;  left: 70%; animation-duration: 17s; animation-delay: -3s;  }
-  .particle:nth-child(6)  { width: 4px;  height: 4px;  left: 85%; animation-duration: 24s; animation-delay: -8s;  background: rgba(255,255,255,0.35); }
-  .particle:nth-child(7)  { width: 5px;  height: 5px;  left: 50%; animation-duration: 19s; animation-delay: -10s; }
-  .particle:nth-child(8)  { width: 6px;  height: 6px;  left: 15%; animation-duration: 21s; animation-delay: -12s; background: rgba(255,255,255,0.5); }
-
-  @keyframes float {
-    from { transform: translateY(110vh) rotate(0deg);   opacity: 0; }
-    10%  { opacity: 1; }
-    90%  { opacity: 1; }
-    to   { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
-  }
-
-  /* ---------- Main Container ---------- */
-  main {
-    position: relative;
-    z-index: 1;
-    width: 92%;
-    max-width: 680px;
-    padding: 20px 0;
-  }
-
-  /* ---------- Card ---------- */
-  .card {
-    height: 94vh;
-    background: var(--panel-light);
-    border: 4px solid var(--panel-border);
-    border-radius: 24px;
-    padding: clamp(24px, 4vw, 30px) clamp(20px, 3.5vw, 36px);
-    box-shadow: var(--shadow-lg), inset 0 0 14px rgba(255,240,210,0.45);
-    animation: cardIn 0.7s ease-out;
-  }
-
-  @keyframes cardIn {
-    from { opacity: 0; transform: translateY(30px) scale(0.97); }
-    to   { opacity: 1; transform: translateY(0) scale(1); }
-  }
-
-  /* ---------- Logo / Title ---------- */
-  .logo-section {
-    text-align: center;
-    margin-bottom: 28px;
-  }
-
-  .logo-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 56px;
-    height: 56px;
-    border-radius: 16px;
-    background: linear-gradient(180deg, var(--pipe-green), #267a2d);
-    margin-bottom: 14px;
-    box-shadow: 0 8px 24px rgba(60, 176, 67, 0.35);
-    animation: logoPulse 3s ease-in-out infinite;
-  }
-
-  @keyframes logoPulse {
-    0%, 100% { box-shadow: 0 8px 24px rgba(60, 176, 67, 0.35); }
-    50%      { box-shadow: 0 8px 36px rgba(60, 176, 67, 0.55); }
-  }
-
-  .logo-icon svg {
-    width: 30px;
-    height: 30px;
-  }
-
-  h1 {
-    font-size: clamp(26px, 5vw, 36px);
-    font-weight: 900;
-    letter-spacing: -0.5px;
-    color: var(--mario-red);
-    text-shadow: 0 2px 0 rgba(0,0,0,0.08);
-    line-height: 1.15;
-  }
-
-  .tagline {
-    color: var(--muted);
-    font-size: clamp(14px, 2vw, 16px);
-    font-weight: 700;
-    margin-top: 6px;
-  }
-
-  /* ---------- Description ---------- */
-  .description {
-    font-size: clamp(14px, 1.6vw, 15px);
-    color: var(--muted);
-    line-height: 1.65;
-    margin-bottom: 24px;
-    text-align: center;
-    font-weight: 700;
-  }
-
-  /* ---------- Rules Section ---------- */
-  .rules-section {
-    margin-bottom: 24px;
-  }
-
-  .rules-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 12px;
-  }
-
-  .rules-header h2 {
-    font-size: 14px;
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: var(--mario-red);
-  }
-
-  .rules-header::after {
-    content: '';
-    flex: 1;
-    height: 2px;
-    background: linear-gradient(90deg, var(--panel-border), transparent);
-  }
-
-  .rules-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-
-  @media (max-width: 500px) {
-    .rules-grid { grid-template-columns: 1fr; }
-  }
-
-  .rule-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    padding: 10px 12px;
-    border-radius: 12px;
-    background: linear-gradient(180deg, var(--cloud-white), #fff8f0);
-    border: 2px solid var(--panel-border);
-    font-size: 13px;
-    line-height: 1.5;
-    color: var(--muted);
-    font-weight: 700;
-    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
-    animation: ruleIn 0.5s ease-out both;
-  }
-
-  .rule-item:nth-child(1) { animation-delay: 0.1s; }
-  .rule-item:nth-child(2) { animation-delay: 0.15s; }
-  .rule-item:nth-child(3) { animation-delay: 0.2s; }
-  .rule-item:nth-child(4) { animation-delay: 0.25s; }
-  .rule-item:nth-child(5) { animation-delay: 0.3s; }
-  .rule-item:nth-child(6) { animation-delay: 0.35s; }
-
-  @keyframes ruleIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  .rule-item:hover {
-    background: #fff;
-    border-color: #ffc247;
-    transform: translateY(-1px);
-  }
-
-  .rule-icon {
-    flex-shrink: 0;
-    width: 20px;
-    height: 20px;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    margin-top: 1px;
-  }
-
-  .rule-icon.drag   { background: rgba(183,40,40,0.12);  color: var(--mario-red); }
-  .rule-icon.cmd    { background: rgba(74,210,83,0.15);  color: #267a2d; }
-  .rule-icon.time   { background: rgba(255,212,71,0.2);  color: #c97a00; }
-  .rule-icon.wall   { background: rgba(242,54,21,0.12);  color: var(--coin-yellow); }
-  .rule-icon.goal   { background: rgba(255,212,71,0.25); color: #c97a00; }
-  .rule-icon.eye    { background: rgba(126,151,196,0.2); color: var(--sky-blue); }
-
-  /* ---------- Preview Button ---------- */
-  .preview-btn {
-    display: block;
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 16px;
-    border-radius: 12px;
-    border: 2px solid var(--panel-border);
-    background: linear-gradient(180deg, var(--cloud-white), #fff1d9);
-    color: var(--muted);
-    font-family: inherit;
-    font-size: 14px;
-    font-weight: 900;
-    cursor: pointer;
-    text-align: center;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.06);
-  }
-
-  .preview-btn:hover {
-    background: #fff;
-    border-color: #ffc247;
-    color: var(--text-dark);
-    transform: translateY(-1px);
-  }
-
-  /* ---------- Mode Cards ---------- */
-  .modes {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-
-  @media (max-width: 460px) {
-    .modes { grid-template-columns: 1fr; }
-  }
-
-  .mode-card {
-    position: relative;
-    padding: 20px 16px;
-    border-radius: 16px;
-    border: 3px solid var(--panel-border);
-    background: linear-gradient(180deg, var(--cloud-white), #fff8f0);
-    cursor: pointer;
-    text-align: center;
-    font-family: inherit;
-    color: var(--text-dark);
-    transition: all 0.25s ease;
-    overflow: hidden;
-    box-shadow: 0 6px 12px rgba(0,0,0,0.08);
-  }
-
-  .mode-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 16px;
-    opacity: 0;
-    transition: opacity 0.25s ease;
-  }
-
-  .mode-card.normal::before {
-    background: linear-gradient(135deg, rgba(74,210,83,0.15), rgba(126,151,196,0.12));
-  }
-
-  .mode-card.precision::before {
-    background: linear-gradient(135deg, rgba(255,212,71,0.18), rgba(183,40,40,0.1));
-  }
-
-  .mode-card:hover {
-    border-color: #ffc247;
-    transform: translateY(-3px);
-    box-shadow: 0 12px 24px rgba(0,0,0,0.15);
-  }
-
-  .mode-card:hover::before { opacity: 1; }
-
-  .mode-card:active {
-    transform: translateY(-1px);
-  }
-
-  .mode-badge {
-    position: relative;
-    z-index: 1;
-    display: inline-block;
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-size: 10px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 10px;
-  }
-
-  .mode-card.normal .mode-badge {
-    background: rgba(74,210,83,0.2);
-    color: #267a2d;
-  }
-
-  .mode-card.precision .mode-badge {
-    background: rgba(255,212,71,0.25);
-    color: #c97a00;
-  }
-
-  .mode-title {
-    position: relative;
-    z-index: 1;
-    font-size: 18px;
-    font-weight: 800;
-    margin-bottom: 6px;
-    letter-spacing: -0.3px;
-  }
-
-  .mode-desc {
-    position: relative;
-    z-index: 1;
-    font-size: 12px;
-    color: var(--muted);
-    line-height: 1.5;
-    font-weight: 700;
-  }
-
-  .mode-arrow {
-    position: relative;
-    z-index: 1;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    margin-top: 12px;
-    font-size: 12px;
-    font-weight: 700;
-    transition: gap 0.2s ease;
-  }
-
-  .mode-card.normal .mode-arrow   { color: #267a2d; }
-  .mode-card.precision .mode-arrow { color: var(--mario-red); }
-
-  .mode-card:hover .mode-arrow { gap: 8px; }
-
-  /* ---------- Preview Modal ---------- */
-  .preview-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    z-index: 100;
-    background: rgba(0,0,0,0.45);
-    align-items: center;
-    justify-content: center;
-    animation: fadeIn 0.2s ease-out;
-  }
-
-  .preview-overlay.visible { display: flex; }
-
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-  }
-
-  .preview-modal {
-    background: var(--panel-light);
-    border: 4px solid var(--panel-border);
-    border-radius: 20px;
-    padding: 20px;
-    max-width: 90%;
-    max-height: 85vh;
-    box-shadow: var(--shadow-lg);
-    animation: modalSlideIn 0.3s ease-out;
-    position: relative;
-  }
-
-  @keyframes modalSlideIn {
-    from { opacity: 0; transform: scale(0.92) translateY(20px); }
-    to   { opacity: 1; transform: scale(1) translateY(0); }
-  }
-
-  .preview-modal img {
-    display: block;
-    max-width: 100%;
-    max-height: 70vh;
-    border-radius: 12px;
-    border: 3px solid var(--panel-border);
-  }
-
-  .preview-close {
-    position: absolute;
-    top: -12px;
-    right: -12px;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    border: 2px solid var(--panel-border);
-    background: var(--cloud-white);
-    color: var(--mario-red);
-    font-size: 16px;
-    font-weight: 900;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.15s ease, transform 0.15s ease;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.12);
-  }
-
-  .preview-close:hover {
-    background: #fff8e8;
-    transform: scale(1.05);
-  }
-
-  /* ---------- Scrollable on short screens ---------- */
-  @media (max-height: 700px) {
     body {
-      align-items: flex-start;
+      min-height: 100vh;
+      overflow-x: hidden;
+      color: var(--ink);
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.25), transparent 35%),
+        linear-gradient(180deg, var(--sky) 0%, var(--sky-bright) 72%, #76bbdf 100%);
     }
-    main {
-      padding: 16px 0;
+
+    button { font: inherit; }
+
+    .world {
+      position: relative;
+      min-height: 100vh;
+      overflow: hidden;
+      isolation: isolate;
     }
-  }
-</style>
+
+    .world::before,
+    .world::after {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      border-radius: 50%;
+      background: rgba(255,255,255,.28);
+      filter: blur(2px);
+    }
+
+    .world::before { width: 34rem; height: 15rem; top: 10%; left: -9rem; }
+    .world::after { width: 30rem; height: 13rem; top: 25%; right: -9rem; }
+
+    .checker-strip {
+      position: absolute;
+      z-index: -1;
+      bottom: 0;
+      left: -5%;
+      width: 110%;
+      height: 92px;
+      transform: rotate(-3deg);
+      background:
+        linear-gradient(45deg, rgba(255,255,255,.55) 25%, transparent 25%, transparent 75%, rgba(255,255,255,.55) 75%),
+        linear-gradient(45deg, rgba(255,255,255,.55) 25%, transparent 25%, transparent 75%, rgba(255,255,255,.55) 75%);
+      background-position: 0 0, 22px 22px;
+      background-size: 44px 44px;
+      background-color: rgba(183,40,40,.35);
+      opacity: .7;
+    }
+
+    .cloud {
+      position: absolute;
+      z-index: -1;
+      width: 118px;
+      height: 34px;
+      border-radius: 30px;
+      background: rgba(255,255,255,.72);
+      box-shadow: 30px -14px 0 -3px rgba(255,255,255,.72), 65px -5px 0 -7px rgba(255,255,255,.72);
+      animation: drift 20s linear infinite;
+    }
+
+    .cloud.one { top: 9%; left: 7%; }
+    .cloud.two { top: 20%; right: 8%; transform: scale(.75); animation-delay: -8s; }
+    .cloud.three { top: 47%; left: 2%; transform: scale(.55); animation-delay: -13s; }
+
+    @keyframes drift {
+      from { translate: -20px; }
+      to { translate: 35px; }
+    }
+
+    .shell {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 26px 0 44px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 22px;
+      color: var(--cream-light);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .brand-mark { display: flex; align-items: center; gap: 10px; }
+
+    .brand-dot {
+      width: 26px;
+      height: 26px;
+      border: 3px solid var(--cream-light);
+      border-radius: 8px;
+      background: var(--red);
+      box-shadow: 3px 3px 0 var(--red-dark);
+      transform: rotate(-8deg);
+    }
+
+    .top-chip {
+      padding: 8px 13px;
+      border: 2px solid rgba(255,255,255,.7);
+      border-radius: 99px;
+      background: rgba(39,21,18,.2);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      align-items: center;
+      gap: 36px;
+      min-height: 245px;
+      margin-bottom: 18px;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 6px;
+      background: var(--yellow);
+      color: var(--red-dark);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      box-shadow: 4px 4px 0 rgba(126,23,29,.28);
+      transform: rotate(-2deg);
+    }
+
+    h1 {
+      margin-top: 15px;
+      color: var(--cream-light);
+      font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+      font-size: clamp(4rem, 11vw, 8.5rem);
+      font-weight: 900;
+      letter-spacing: 1px;
+      line-height: .82;
+      text-shadow: 5px 5px 0 var(--red-dark), 9px 9px 0 rgba(39,21,18,.22);
+      transform: skew(-4deg);
+    }
+
+    .tagline {
+      max-width: 470px;
+      margin-top: 18px;
+      color: var(--cream-light);
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      font-weight: 800;
+      letter-spacing: .3px;
+      text-shadow: 2px 2px 0 rgba(39,21,18,.22);
+    }
+
+    .kart-badge {
+      position: relative;
+      justify-self: center;
+      width: min(100%, 340px);
+      aspect-ratio: 1.25;
+      border: 5px solid var(--cream-light);
+      border-radius: 48% 48% 42% 42%;
+      background: linear-gradient(150deg, var(--red) 0 54%, var(--red-dark) 55%);
+      box-shadow: 9px 11px 0 var(--red-dark), 0 22px 30px rgba(52,38,61,.28);
+      transform: rotate(4deg);
+    }
+
+    .kart-badge::before {
+      content: "★";
+      position: absolute;
+      top: 10%;
+      left: 38%;
+      color: var(--yellow);
+      font-size: clamp(3rem, 8vw, 5rem);
+      text-shadow: 3px 3px 0 var(--red-dark);
+    }
+
+    .kart-badge::after {
+      content: "GO!";
+      position: absolute;
+      right: -18px;
+      bottom: -19px;
+      padding: 9px 13px;
+      border: 3px solid var(--ink);
+      border-radius: 8px;
+      background: var(--green);
+      color: var(--ink);
+      font-family: Impact, sans-serif;
+      font-size: 1.6rem;
+      letter-spacing: 2px;
+      transform: rotate(-9deg);
+    }
+
+    .wheel {
+      position: absolute;
+      bottom: 8%;
+      width: 42px;
+      height: 42px;
+      border: 8px solid var(--ink);
+      border-radius: 50%;
+      background: var(--yellow);
+    }
+
+    .wheel.left { left: 13%; }
+    .wheel.right { right: 13%; }
+
+    .panel {
+      border: 4px solid var(--border);
+      border-radius: 22px;
+      background: var(--cream);
+      box-shadow: var(--shadow);
+    }
+
+    .instructions {
+      padding: 26px clamp(18px, 4vw, 42px) 25px;
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .section-heading h2 {
+      color: var(--red);
+      font-family: Impact, Haettenschweiler, sans-serif;
+      font-size: clamp(1.7rem, 4vw, 2.45rem);
+      letter-spacing: .5px;
+      text-transform: uppercase;
+    }
+
+    .section-heading p {
+      color: var(--muted);
+      font-size: .82rem;
+      font-weight: 800;
+      text-align: right;
+    }
+
+    .slider-window {
+      position: relative;
+      overflow: hidden;
+      border: 3px solid var(--border);
+      border-radius: 15px;
+      background: var(--cream-light);
+      touch-action: pan-y;
+    }
+
+    .slides {
+      display: flex;
+      transition: transform .38s cubic-bezier(.22,.8,.25,1);
+      will-change: transform;
+    }
+
+    .slide {
+      display: grid;
+      grid-template-columns: 74px 1fr;
+      align-items: center;
+      flex: 0 0 100%;
+      min-height: 126px;
+      gap: 20px;
+      padding: 22px clamp(55px, 8vw, 92px);
+    }
+
+    .slide-icon {
+      display: grid;
+      place-items: center;
+      width: 66px;
+      height: 66px;
+      border: 3px solid currentColor;
+      border-radius: 18px;
+      background: #fff3cc;
+      color: var(--red);
+      font-size: 2rem;
+      box-shadow: 4px 4px 0 rgba(183,40,40,.18);
+    }
+
+    .slide h3 {
+      margin-bottom: 5px;
+      color: var(--ink);
+      font-size: 1.1rem;
+      font-weight: 900;
+    }
+
+    .slide p {
+      color: var(--muted);
+      font-size: .94rem;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .slider-btn {
+      position: absolute;
+      z-index: 1;
+      top: 50%;
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--red-dark);
+      border-radius: 50%;
+      background: var(--yellow);
+      color: var(--red-dark);
+      cursor: pointer;
+      font-size: 1.5rem;
+      font-weight: 900;
+      line-height: 1;
+      transform: translateY(-50%);
+      transition: transform .18s ease, background .18s ease;
+    }
+
+    .slider-btn:hover,
+    .slider-btn:focus-visible { background: #ffe486; transform: translateY(-50%) scale(1.08); }
+    .slider-btn:focus-visible, .mode-card:focus-visible, .preview-btn:focus-visible { outline: 3px solid var(--green-dark); outline-offset: 3px; }
+    .slider-btn.prev { left: 12px; }
+    .slider-btn.next { right: 12px; }
+
+    .slider-footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      margin-top: 15px;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border: 0;
+      border-radius: 50%;
+      background: var(--border);
+      cursor: pointer;
+    }
+
+    .dot.active { width: 25px; border-radius: 99px; background: var(--red); }
+
+    .play-area {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 24px;
+    }
+
+    .mode-card {
+      position: relative;
+      min-height: 190px;
+      padding: 26px 25px;
+      border: 4px solid var(--border);
+      border-radius: 18px;
+      color: var(--ink);
+      text-align: left;
+      cursor: pointer;
+      overflow: hidden;
+      box-shadow: 0 8px 0 rgba(78,42,27,.12);
+      transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+
+    .mode-card::after {
+      position: absolute;
+      right: 19px;
+      bottom: -10px;
+      font-family: Impact, sans-serif;
+      font-size: 5rem;
+      opacity: .16;
+    }
+
+    .mode-card.normal { background: linear-gradient(135deg, #efffea, #bceec1); }
+    .mode-card.precision { background: linear-gradient(135deg, #fff8df, #ffd89a); }
+    .mode-card.normal::after { content: "➜"; color: var(--green-dark); }
+    .mode-card.precision::after { content: "★"; color: var(--red); }
+    .mode-card:hover { border-color: var(--red); transform: translateY(-5px); box-shadow: 0 13px 0 rgba(78,42,27,.13); }
+    .mode-card:active { transform: translateY(-1px); }
+
+    .mode-badge {
+      display: inline-block;
+      padding: 5px 9px;
+      border-radius: 5px;
+      background: var(--cream-light);
+      color: var(--red-dark);
+      font-size: .68rem;
+      font-weight: 900;
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+    }
+
+    .mode-title {
+      margin: 14px 0 6px;
+      font-family: Impact, Haettenschweiler, sans-serif;
+      font-size: clamp(1.55rem, 3vw, 2rem);
+      letter-spacing: .4px;
+    }
+
+    .mode-desc { max-width: 270px; color: var(--muted); font-size: .88rem; font-weight: 700; line-height: 1.4; }
+    .mode-arrow { position: absolute; right: 24px; top: 28px; color: var(--red-dark); font-size: 1.6rem; font-weight: 900; }
+
+    .preview-btn {
+      display: block;
+      width: 100%;
+      margin-top: 18px;
+      padding: 13px;
+      border: 3px solid var(--border);
+      border-radius: 12px;
+      background: var(--cream);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: .9rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: background .2s ease, border-color .2s ease;
+    }
+
+    .preview-btn:hover { border-color: var(--red); background: var(--cream-light); }
+
+    .preview-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(39,21,18,.6);
+    }
+
+    .preview-overlay.visible { display: flex; }
+
+    .preview-modal {
+      position: relative;
+      width: min(680px, 100%);
+      padding: 14px;
+      border: 4px solid var(--border);
+      border-radius: 18px;
+      background: var(--cream);
+      box-shadow: var(--shadow);
+    }
+
+    .preview-modal img { display: block; width: 100%; border: 3px solid var(--border); border-radius: 10px; }
+
+    .preview-close {
+      position: absolute;
+      z-index: 1;
+      top: -15px;
+      right: -15px;
+      width: 34px;
+      height: 34px;
+      border: 3px solid var(--red-dark);
+      border-radius: 50%;
+      background: var(--yellow);
+      color: var(--red-dark);
+      cursor: pointer;
+      font-weight: 900;
+    }
+
+    @media (max-width: 700px) {
+      .shell { width: min(100% - 22px, 560px); padding-top: 17px; }
+      .topbar { margin-bottom: 12px; }
+      .hero { grid-template-columns: 1fr; gap: 25px; min-height: auto; text-align: center; }
+      .tagline { margin-inline: auto; }
+      .kart-badge { width: min(62vw, 260px); }
+      .section-heading { align-items: start; flex-direction: column; gap: 5px; }
+      .section-heading p { text-align: left; }
+      .slide { grid-template-columns: 54px 1fr; gap: 14px; min-height: 155px; padding: 20px 52px; }
+      .slide-icon { width: 52px; height: 52px; font-size: 1.5rem; border-radius: 14px; }
+      .play-area { grid-template-columns: 1fr; }
+      .mode-card { min-height: 155px; }
+    }
+
+    @media (max-width: 390px) {
+      .top-chip { display: none; }
+      h1 { font-size: 3.8rem; }
+      .instructions { padding-inline: 12px; }
+      .slide { padding-inline: 45px; }
+      .slider-btn.prev { left: 6px; }
+      .slider-btn.next { right: 6px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
 </head>
 
 <body>
-  <!-- Animated background -->
-  <div class="bg-grid" aria-hidden="true">
-    <div class="particle"></div>
-    <div class="particle"></div>
-    <div class="particle"></div>
-    <div class="particle"></div>
-    <div class="particle"></div>
-    <div class="particle"></div>
-    <div class="particle"></div>
-    <div class="particle"></div>
+  <div class="world">
+    <div class="cloud one" aria-hidden="true"></div>
+    <div class="cloud two" aria-hidden="true"></div>
+    <div class="cloud three" aria-hidden="true"></div>
+    <div class="checker-strip" aria-hidden="true"></div>
+
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand-mark"><span class="brand-dot" aria-hidden="true"></span></div>
+        <span class="top-chip">Ready, set, solve!</span>
+      </header>
+
+      <section class="hero" aria-labelledby="page-title">
+        <div>
+          <span class="eyebrow">The ultimate puzzle race</span>
+          <h1 id="page-title">Twisted<br />Trails</h1>
+          <p class="tagline">Navigate the twists. Outsmart the traps. Cross the finish line.</p>
+        </div>
+        <div class="kart-badge" aria-hidden="true">
+          <span class="wheel left"></span>
+          <span class="wheel right"></span>
+        </div>
+      </section>
+
+      <section class="panel instructions" aria-labelledby="instructions-title">
+        <div class="section-heading">
+          <h2 id="instructions-title">Pit stop briefing</h2>
+          <p>Swipe or use the arrows to learn the ropes</p>
+        </div>
+
+        <div class="slider-window" id="sliderWindow">
+          <div class="slides" id="slides">
+            <article class="slide">
+              <div class="slide-icon" aria-hidden="true">➜</div>
+              <div><h3>Build your route</h3><p>Drag or click command cards into the Solution box to plan your perfect run.</p></div>
+            </article>
+            <article class="slide">
+              <div class="slide-icon" aria-hidden="true">▶</div>
+              <div><h3>Choose your moves</h3><p>Use Move, Turn Left, and Turn Right to guide your racer through the maze.</p></div>
+            </article>
+            <article class="slide">
+              <div class="slide-icon" aria-hidden="true">⏱</div>
+              <div><h3>Race the clock</h3><p>Every level has a time limit, so think ahead and keep your momentum.</p></div>
+            </article>
+            <article class="slide">
+              <div class="slide-icon" aria-hidden="true">✕</div>
+              <div><h3>Dodge the walls</h3><p>A crash costs a chance. Lose all three and your race is over.</p></div>
+            </article>
+            <article class="slide">
+              <div class="slide-icon" aria-hidden="true">★</div>
+              <div><h3>Find the trophy</h3><p>Reach the trophy at the finish to complete the level and earn points.</p></div>
+            </article>
+            <article class="slide">
+              <div class="slide-icon" aria-hidden="true">👁</div>
+              <div><h3>Scout the track</h3><p>Open the maze preview before racing to study the layout and spot your route.</p></div>
+            </article>
+          </div>
+          <button type="button" class="slider-btn prev" id="prevSlide" aria-label="Previous instruction">‹</button>
+          <button type="button" class="slider-btn next" id="nextSlide" aria-label="Next instruction">›</button>
+        </div>
+        <div class="slider-footer" id="sliderDots" aria-label="Instruction slides"></div>
+      </section>
+
+      <section class="play-area" aria-label="Choose a game mode">
+        <button type="button" class="mode-card normal" id="normalBtn">
+          <span class="mode-badge">Classic cup</span>
+          <span class="mode-title">Normal Mode</span><br>
+          <span class="mode-desc">Navigate freely — find any path to the goal.</span>
+          <span class="mode-arrow" aria-hidden="true">→</span>
+        </button>
+        <button type="button" class="mode-card precision" id="precisionBtn">
+          <span class="mode-badge">Time trial</span>
+          <span class="mode-title">Precision Mode</span><br>
+          <span class="mode-desc">Only the shortest path is accepted. No shortcuts.</span>
+          <span class="mode-arrow" aria-hidden="true">→</span>
+        </button>
+      </section>
+
+      <button type="button" class="preview-btn" id="previewBtn">View the maze preview</button>
+    </main>
   </div>
 
-  <main>
-    <div class="card">
-
-      <!-- Logo & Title -->
-      <section class="logo-section">
-        <!-- <div class="logo-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3z"/>
-            <path d="M17.5 14v3.5H14M21 14h-3.5M17.5 21v-3.5"/>
-          </svg>
-        </div> -->
-        <h1>Twisted Trails</h1>
-        <p class="tagline">Navigate the twists. Outsmart the traps.</p>
-      </section>
-      <!-- Description -->
-      <p class="description">
-        Guide your character through mind-bending mazes using command cards.
-        Plan smart, move sharp, and reach the goal with precision!
-      </p>
-
-      <!-- Rules -->
-      <section class="rules-section">
-        <div class="rules-header">
-          <h2>How to Play</h2>
-        </div>
-        <div class="rules-grid">
-          <div class="rule-item">
-            <div class="rule-icon drag">⟶</div>
-            <span>Drag or click command cards into the Solution box</span>
-          </div>
-          <div class="rule-item">
-            <div class="rule-icon cmd">▶</div>
-            <span>Use <strong>Move</strong>, <strong>Turn Left</strong>, and <strong>Turn Right</strong></span>
-          </div>
-          <div class="rule-item">
-            <div class="rule-icon time">⏱</div>
-            <span>Beat the clock — each level has a time limit</span>
-          </div>
-          <div class="rule-item">
-            <div class="rule-icon wall">✕</div>
-            <span>Hitting a wall costs a chance. Lose all 3 and it's over</span>
-          </div>
-          <div class="rule-item">
-            <div class="rule-icon goal">★</div>
-            <span>Reach the trophy to complete the level and earn points</span>
-          </div>
-          <div class="rule-item">
-            <div class="rule-icon eye">👁</div>
-            <span>Click Preview below to see the maze layout</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- Preview -->
-      <button type="button" class="preview-btn" id="previewBtn"> Preview Maze Layout</button>
-
-      <!-- Mode Selection -->
-      <div class="modes">
-        <button type="button" class="mode-card normal" id="normalBtn">
-          <div class="mode-badge">Classic</div>
-          <div class="mode-title">Normal Mode</div>
-          <div class="mode-desc">Navigate freely — find any path to the goal</div>
-          <div class="mode-arrow">Play →</div>
-        </button>
-
-        <button type="button" class="mode-card precision" id="precisionBtn">
-          <div class="mode-badge">Challenge</div>
-          <div class="mode-title">Precision Mode</div>
-          <div class="mode-desc">Only the shortest path is accepted</div>
-          <div class="mode-arrow">Play →</div>
-        </button>
-      </div>
-
-    </div>
-  </main>
-
-  <!-- Preview Modal -->
-  <div class="preview-overlay" id="previewOverlay">
+  <div class="preview-overlay" id="previewOverlay" role="dialog" aria-modal="true" aria-label="Maze preview">
     <div class="preview-modal">
       <button type="button" class="preview-close" id="previewClose" aria-label="Close preview">✕</button>
       <img src="photos/maze_preview.png" alt="Maze game preview showing the puzzle grid layout" width="600" height="400" />
@@ -580,7 +597,6 @@
   </div>
 
   <script>
-    /* Navigation */
     document.getElementById("normalBtn").addEventListener("click", () => {
       window.location.href = "game_M.html";
     });
@@ -589,23 +605,52 @@
       window.location.href = "game.html";
     });
 
-    /* Preview Modal */
+    const slides = document.getElementById("slides");
+    const sliderWindow = document.getElementById("sliderWindow");
+    const dots = document.getElementById("sliderDots");
+    const slideCount = slides.children.length;
+    let currentSlide = 0;
+    let touchStartX = 0;
+
+    for (let index = 0; index < slideCount; index += 1) {
+      const dot = document.createElement("button");
+      dot.type = "button";
+      dot.className = "dot";
+      dot.setAttribute("aria-label", `Show instruction ${index + 1}`);
+      dot.addEventListener("click", () => showSlide(index));
+      dots.appendChild(dot);
+    }
+
+    function showSlide(index) {
+      currentSlide = (index + slideCount) % slideCount;
+      slides.style.transform = `translateX(-${currentSlide * 100}%)`;
+      Array.from(dots.children).forEach((dot, dotIndex) => {
+        dot.classList.toggle("active", dotIndex === currentSlide);
+        dot.setAttribute("aria-current", dotIndex === currentSlide ? "true" : "false");
+      });
+    }
+
+    document.getElementById("prevSlide").addEventListener("click", () => showSlide(currentSlide - 1));
+    document.getElementById("nextSlide").addEventListener("click", () => showSlide(currentSlide + 1));
+    sliderWindow.addEventListener("touchstart", (event) => {
+      touchStartX = event.changedTouches[0].screenX;
+    }, { passive: true });
+    sliderWindow.addEventListener("touchend", (event) => {
+      const distance = event.changedTouches[0].screenX - touchStartX;
+      if (Math.abs(distance) > 45) showSlide(currentSlide + (distance < 0 ? 1 : -1));
+    }, { passive: true });
+    showSlide(0);
+
     const overlay = document.getElementById("previewOverlay");
-
-    document.getElementById("previewBtn").addEventListener("click", () => {
-      overlay.classList.add("visible");
+    document.getElementById("previewBtn").addEventListener("click", () => overlay.classList.add("visible"));
+    document.getElementById("previewClose").addEventListener("click", () => overlay.classList.remove("visible"));
+    overlay.addEventListener("click", (event) => {
+      if (event.target === overlay) overlay.classList.remove("visible");
     });
-
-    document.getElementById("previewClose").addEventListener("click", () => {
-      overlay.classList.remove("visible");
-    });
-
-    overlay.addEventListener("click", (e) => {
-      if (e.target === overlay) overlay.classList.remove("visible");
-    });
-
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") overlay.classList.remove("visible");
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") overlay.classList.remove("visible");
+      if (event.key === "ArrowLeft") showSlide(currentSlide - 1);
+      if (event.key === "ArrowRight") showSlide(currentSlide + 1);
     });
   </script>
 </body>
