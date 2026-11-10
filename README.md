@@ -1,127 +1,161 @@
-# Twisted Trails
+<div align="center">
 
-### A command-based maze puzzle game
+# 🏁 Twisted Trails
 
-Twisted Trails is a browser-based maze game created as a **BCA Exhibition project**.  
-The player plans a sequence of commands, guides a character through a maze, avoids walls and traps, and reaches the goal before time runs out.
+### The maze is the track. Your commands are the kart.
 
-> **Navigate the twists. Outsmart the traps.**
+**Navigate the twists. Outsmart the traps. Cross the finish line.**
 
-![Twisted Trails preview](photos/maze_preview.png)
+[![Play online](https://img.shields.io/badge/PLAY%20ONLINE-Twisted%20Trails-b72828?style=for-the-badge&logo=googlechrome&logoColor=white)](https://ohil09.github.io/Maze-Game/)
+[![Built with HTML, CSS and JavaScript](https://img.shields.io/badge/BUILT%20WITH-Vanilla%20Web-4ad253?style=for-the-badge)](#-under-the-hood)
 
-## About the Project
+<br />
 
-The idea behind Twisted Trails is to make maze solving more interactive than simply using keyboard arrows. Instead, the player must think ahead and build a solution using command cards:
+<img src="photos/maze_preview.png" alt="Twisted Trails maze preview" width="720" />
 
-- **Move Forward**
-- **Turn Left**
-- **Turn Right**
+</div>
 
-The game combines logical thinking, planning, time management, and basic algorithmic problem-solving in a simple visual format.
+---
 
-## Game Modes
+## 🎮 Welcome to the Maze Kart League
 
-### Normal Mode
+Twisted Trails is a command-based maze puzzle game created as a **BCA Exhibition project**.
+You are not steering with arrow keys. You are the strategist behind the wheel: build a
+sequence of command cards, run your route, avoid collisions, and reach the real goal
+before the timer runs out.
 
-Explore the maze freely and find the correct route to the real goal. Some levels contain fake goals, so the player must carefully identify the correct destination.
+> **Think ahead. Move sharp. Chase the high score.**
 
-### Precision Mode
+---
 
-Follow the exact shortest path. Reaching the goal through any other route counts as a wrong path and costs one chance.
+## 🏆 Choose Your Race
 
-## Main Features
+| Mode | The challenge |
+| --- | --- |
+| **Normal Mode** | Find a route to the real goal. Explore freely, but watch out for fake goals hidden in some levels. |
+| **Precision Mode** | Take the exact shortest path. Any detour counts as a wrong route and costs a chance. |
 
-- 7 progressively challenging maze levels
-- Maze sizes from `4x4` up to `9x12`
-- Two gameplay modes: Normal and Precision
-- Drag-and-drop command cards
-- Tap command cards to add them on smaller screens
-- Countdown timer for every level
-- Three chances per level
-- Collision detection for walls and out-of-bounds movement
-- Fake goals in Normal Mode
-- Score calculation based on level, time, and moves
-- Sound effects for countdown, errors, level completion, success, and failure
-- Responsive layout for desktop and mobile screens
-- Congratulations and Game Over screens
+---
 
-## How to Play
+## 🧩 Your Command Deck
 
-1. Open the game from [the home page](https://ohil09.github.io/Maze-Game/).
-2. Choose **Normal Mode** or **Precision Mode**.
-3. Drag command cards into the **Solution** column, or tap a card to add it.
-4. Arrange the commands in the order the character should perform them.
-5. Click **Run** to execute the sequence.
-6. Use **Clear** to remove the current sequence.
-7. Use **Restart** to begin again from Level 1.
-8. Complete all seven levels with the highest score possible.
+Build your solution using three command cards:
 
-### Rules
+```text
+┌─────────────────┐   ┌──────────────┐   ┌───────────────┐
+│  Move Forward   │   │  Turn Left   │   │  Turn Right   │
+└─────────────────┘   └──────────────┘   └───────────────┘
+```
 
-- You begin each level with **3 chances**.
+### How to play
+
+1. Open the [home page](https://ohil09.github.io/Maze-Game/).
+2. Pick **Normal Mode** or **Precision Mode**.
+3. Drag command cards into the **Solution** column, or tap a card on mobile.
+4. Arrange the cards in the order your character should perform them.
+5. Hit **Run** and watch the route execute.
+6. Use **Clear** to remove the current sequence or **Restart** to return to Level 1.
+7. Beat all seven levels and finish with the highest score possible.
+
+### Track rules
+
+- Every level starts with **3 chances**.
 - Hitting a wall or moving outside the maze costs one chance.
 - Running out of time costs one chance.
 - In Precision Mode, leaving the shortest path costs one chance.
-- A level must be completed before the next level is unlocked.
+- Complete the current level to unlock the next one.
 
+---
 
-## Technologies Used
+## ⭐ What Is In The Garage?
 
-- **HTML5** - page structure and game screens
-- **CSS3** - responsive layout, animations, colors, and visual design
-- **Vanilla JavaScript** - game logic, movement, timers, scoring, and events
-- **Browser localStorage** - saving per-level best scores
-- **HTML Audio** - game sound effects
+- **7** progressively challenging maze levels
+- Maze sizes ranging from `4x4` to `9x12`
+- Drag-and-drop commands with tap support for smaller screens
+- Countdown timer and per-level time limits
+- Collision detection for walls and out-of-bounds movement
+- Fake goals in Normal Mode
+- Score calculation based on level, time, and moves
+- Sound effects for countdowns, errors, wins, level-ups, and failures
+- Responsive desktop and mobile layouts
+- Congratulations and Game Over screens
+- Per-level best scores saved in browser `localStorage`
 
-No external framework or database is required.
+---
 
-## How to Run
+## 🚦 Quick Start
 
-### Option 1: Open directly
+### Option 1: Open the track directly
 
 Open `index.html` in a modern web browser.
 
-### Option 2: Use a local server
+### Option 2: Start a local pit crew server
 
-A local server is recommended for the best browser compatibility:
+From the project folder, run:
 
 ```bash
 python -m http.server 8000
 ```
 
-Then open:
+Then visit:
 
 ```text
 http://localhost:8000
 ```
 
-## Learning Outcomes
+No external framework, database, or build step is required.
 
-This project helped me practise:
+---
+
+## 🛠️ Under The Hood
+
+| Technology | Role |
+| --- | --- |
+| **HTML5** | Page structure, game screens, and accessible controls |
+| **CSS3** | Responsive layouts, animations, colors, and visual design |
+| **Vanilla JavaScript** | Game state, movement, timers, scoring, and events |
+| **Browser localStorage** | Per-level best score persistence |
+| **HTML Audio** | Game sound effects |
+
+The shared gameplay logic lives in [`js/engine.js`](js/engine.js), while the two
+mode-specific race rules live in [`game_M.html`](game_M.html) and
+[`game.html`](game.html).
+
+---
+
+## 🧠 Skills On The Starting Grid
+
+This project was built to practise:
 
 - Designing a complete interactive web application
 - Managing game state with JavaScript
-- Working with arrays to represent maze grids
+- Representing maze grids with arrays
 - Handling drag-and-drop and click events
 - Creating timers and animated actions
-- Applying collision and path validation logic
-- Using `localStorage` for client-side data persistence
-- Building a responsive user interface with HTML and CSS
+- Applying collision and path-validation logic
+- Using `localStorage` for client-side persistence
+- Building responsive interfaces for desktop and mobile
 - Organising shared logic into a reusable game engine
 
-## Future Improvements
+---
+
+## 🔧 Next Laps
 
 - Procedurally generate unlimited mazes
 - Add keyboard controls and touch swipe controls
-- Add more player profiles and global leaderboards
-- Add difficulty selection
+- Add player profiles and global leaderboards
+- Add selectable difficulty levels
 - Add hints with a score penalty
-- Add accessibility improvements and colour-blind-friendly themes
+- Improve accessibility and colour-blind-friendly themes
 - Add unit tests for movement, scoring, and path validation
 
-## Author
+---
 
-Ohil Raj S  
- 
-This project was created as an Exhibition project to demonstrate front-end development, JavaScript programming, and game-design concepts.
+<div align="center">
 
+### 🏁 Ready, set, solve!
+
+Built by **Ohil Raj S** as an exhibition project demonstrating front-end
+development, JavaScript programming, and game-design concepts.
+
+</div>
