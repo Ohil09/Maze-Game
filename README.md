@@ -2,7 +2,7 @@
 
 ### A command-based maze puzzle game
 
-Twisted Trails is a browser-based maze game created as a **BCA project**.  
+Twisted Trails is a browser-based maze game created as a **BCA Exhibition project**.  
 The player plans a sequence of commands, guides a character through a maze, avoids walls and traps, and reaches the goal before time runs out.
 
 > **Navigate the twists. Outsmart the traps.**
@@ -123,5 +123,5 @@ This project helped me practise:
 
 Ohil Raj S  
  
-This project was created as an academic project to demonstrate front-end development, JavaScript programming, and game-design concepts.
+This project was created as an Exhibition project to demonstrate front-end development, JavaScript programming, and game-design concepts.
 
